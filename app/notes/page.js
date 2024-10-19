@@ -1,6 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+const clock = 1;
 
 const NotesPage = () => {
 	const [topic, setTopic] = useState('');
@@ -10,6 +14,21 @@ const NotesPage = () => {
 	const [notes, setNotes] = useState('');
 	const [timeLeft, setTimeLeft] = useState(0);
 	const [suggestions, setSuggestions] = useState([]);
+	const router = useRouter();
+
+	// Initialize Gemini API client
+	const genAI = new GoogleGenerativeAI('AIzaSyBHMuOVy-yoiRGCExfmigCpTxYySWxRBpk');
+
+	const model = genAI.getGenerativeModel({
+		model: 'gemini-1.5-pro-latest',
+		generationConfig: {
+			responseSchema: {
+				type: 'object',
+				properties: { text: { type: 'string', maxLength: 64 } },
+			},
+			temperature: 2,
+		},
+	});
 
 	useEffect(() => {
 		setTopic(localStorage.getItem('topic'));
@@ -17,7 +36,7 @@ const NotesPage = () => {
 		setViewpoint2(localStorage.getItem('viewpoint2'));
 		const prepTimeValue = localStorage.getItem('prepTime');
 		setPrepTime(prepTimeValue);
-		setTimeLeft(prepTimeValue * 60); // Initialize timer with prep time in seconds
+		setTimeLeft(prepTimeValue ? prepTimeValue * 60 : 0); // Initialize timer with prep time in seconds
 	}, []);
 
 	// Timer logic
@@ -26,30 +45,39 @@ const NotesPage = () => {
 		if (timeLeft > 0) {
 			timer = setInterval(() => {
 				setTimeLeft((prevTime) => prevTime - 1);
-			}, 1000);
-		} else if (timeLeft === 0) {
+			}, 1000 / clock);
+		} else if (timeLeft === 0 && prepTime > 0) {
 			clearInterval(timer);
+			router.push('/judge'); // Redirect to /judge route when timer reaches 0
 		}
 		return () => clearInterval(timer);
-	}, [timeLeft]);
+	}, [timeLeft, router]);
 
-	// Simulate fetching suggestions from Gemini every set amount of time
-	useEffect(() => {
-		const fetchSuggestionsInterval = setInterval(() => {
-			if (notes) {
-				// This is where you'd call the Gemini API to get suggestions based on the notes.
-				// For now, let's simulate this with some mock suggestions.
-				const newSuggestions = [
-					'Consider the ethical implications of your argument.',
-					'How would your viewpoint change if you considered an opposing perspective?',
-					'Can you provide a real-world example to strengthen your argument?',
-				];
-				setSuggestions(newSuggestions);
+	// Function to get suggestions from Gemini
+	const getSuggestions = async () => {
+		try {
+			console.log('Generating suggestion...');
+
+			// Generate prompt for Gemini
+			const prompt = `Here is a debate topic: "${topic}".
+Viewpoint 1: ${viewpoint1}
+Viewpoint 2: ${viewpoint2}
+User Notes: ${notes}
+
+In a single sentence, provide a concise, thought-provoking question or refutation to challenge the user's current arguments. Do not label your response with a header. If the user notes are empty, return an empty string.`;
+
+			// Call Gemini API to generate suggestion
+			const result = await model.generateContent(prompt);
+			const suggestion = result.response.text().trim();
+
+			// Add generated suggestion to list
+			if (suggestion) {
+				setSuggestions((prevSuggestions) => [...prevSuggestions, suggestion]);
 			}
-		}, 60000); // Fetch suggestions every 60 seconds
-
-		return () => clearInterval(fetchSuggestionsInterval);
-	}, [notes]);
+		} catch (error) {
+			console.error('Error generating suggestion:', error);
+		}
+	};
 
 	// Format time in mm:ss
 	const formatTime = (seconds) => {
@@ -83,8 +111,8 @@ const NotesPage = () => {
 			{/* Main Content Section */}
 			<div className='w-full flex gap-4 max-w-6xl'>
 				{/* Suggestions Section */}
-				<div className='w-1/3 p-4 bg-white border border-gray-300 rounded-lg flex flex-col'>
-					<h2 className='text-2xl font-bold mb-4'>Suggestions:</h2>
+				<div className='w-2/5 p-4 bg-white border border-gray-300 rounded-lg flex flex-col'>
+					<h2 className='text-2xl font-bold mb-4'>Gemini Suggestions:</h2>
 					<ul className='list-disc list-inside'>
 						{suggestions.map((suggestion, index) => (
 							<li key={index} className='text-lg mb-2'>
@@ -92,17 +120,23 @@ const NotesPage = () => {
 							</li>
 						))}
 					</ul>
+					<button
+						onClick={getSuggestions}
+						className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4'
+					>
+						Prompt My Thinking
+					</button>
 				</div>
 
 				{/* Notes Section */}
-				<div className='w-2/3 p-4 bg-white border border-gray-300 rounded-lg flex flex-col'>
+				<div className='w-3/5 p-4 bg-white border border-gray-300 rounded-lg flex flex-col'>
 					<h2 className='text-2xl font-bold mb-4'>Your Notes:</h2>
 					<textarea
 						className='w-full p-4 h-96 border border-gray-300 rounded-md bg-gray-50 resize-none'
 						value={notes}
 						onChange={(e) => setNotes(e.target.value)}
 						placeholder='Type your notes here...'
-					/>
+				/>
 				</div>
 			</div>
 		</div>

@@ -62,7 +62,7 @@ const Home = () => {
 		localStorage.setItem('viewpoint2', viewpoint2);
 		localStorage.setItem('prepTime', prepTime);
 		localStorage.setItem('speakingLength', speakingLength);
-		window.location.href = '/submit';
+		window.location.href = '/notes';
 	};
 
 	return (
