@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin'] });
 
 const clock = 1;
 
@@ -93,15 +96,15 @@ In a single sentence, provide a concise, thought-provoking question or refutatio
 	};
 
 	return (
-		<div className='min-h-screen bg-gray-100 p-8 flex flex-col items-center'>
+		<div className={`min-h-screen bg-gray-100 p-8 flex flex-col items-center ${inter.className}`}>
 			{/* Timer in the upper right corner */}
 			<div className='w-full flex justify-end mb-4'>
-				<div className='text-lg font-semibold text-gray-700'>Timer: {formatTime(timeLeft)}</div>
+				<div className='text-lg font-semibold text-gray-700'>Timer: {formatTime(timeLeft)} ⏱️</div>
 			</div>
 
 			{/* Topic and Viewpoints Section */}
-			<div className='bg-gray-200 p-6 mb-6 rounded-lg w-full max-w-6xl'>
-				<p className='text-3xl font-bold text-left mb-4'>{topic}</p>
+			<div className='bg-white p-6 mb-6 rounded-lg shadow-md w-full max-w-6xl'>
+				<p className='text-3xl font-bold text-left mb-4'>{topic} 🎯</p>
 				{viewpoint1 && (
 					<p className='text-lg mt-2 text-left'>
 						<strong>• Viewpoint 1:</strong> {viewpoint1}
@@ -117,28 +120,28 @@ In a single sentence, provide a concise, thought-provoking question or refutatio
 			{/* Main Content Section */}
 			<div className='w-full flex gap-4 max-w-6xl'>
 				{/* Suggestions Section */}
-				<div className='w-2/5 p-4 bg-white border border-gray-300 rounded-lg flex flex-col'>
-					<h2 className='text-2xl font-bold mb-4'>Gemini Suggestions:</h2>
+				<div className='w-2/5 p-4 bg-white shadow-md rounded-lg flex flex-col'>
+					<h2 className='text-2xl font-bold mb-4'>Gemini Suggestions: 💡</h2>
 					<ul className='list-disc list-inside'>
 						{suggestions.map((suggestion, index) => (
 							<li key={index} className='text-lg mb-2'>
-								{suggestion}
+									{suggestion}
 							</li>
 						))}
 					</ul>
 					<button
 						onClick={getSuggestions}
-						className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4'
+						className='bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105 mt-4'
 					>
-						Prompt My Thinking
+						Prompt My Thinking 🧠
 					</button>
 				</div>
 
 				{/* Notes Section */}
-				<div className='w-3/5 p-4 bg-white border border-gray-300 rounded-lg flex flex-col'>
-					<h2 className='text-2xl font-bold mb-4'>Your Notes:</h2>
+				<div className='w-3/5 p-4 bg-white shadow-md rounded-lg flex flex-col'>
+					<h2 className='text-2xl font-bold mb-4'>Your Notes: 📝</h2>
 					<textarea
-						className='w-full p-4 h-96 border border-gray-300 rounded-md bg-gray-50 resize-none'
+						className='w-full p-4 h-96 border border-gray-300 rounded-md bg-gray-50 resize-none focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent'
 						value={notes}
 						onChange={(e) => setNotes(e.target.value)}
 						placeholder='Type your notes here...'
