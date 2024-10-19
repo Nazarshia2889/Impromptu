@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Inter } from 'next/font/google'
+
+const inter = Inter({ subsets: ['latin'] })
 
 const Home = () => {
 	const [topic, setTopic] = useState('Click the button to generate a topic!');
@@ -112,19 +115,21 @@ const Home = () => {
 	};
 
 	return (
-		<div className='flex flex-col items-center justify-center min-h-screen p-8 bg-gradient-to-br from-blue-100 to-purple-100'>
-			<div className='bg-white rounded-xl shadow-2xl p-8 w-full max-w-2xl relative'>
-				<div className='bg-gray-100 p-6 mt-6 rounded-xl shadow-inner'>
-					<p className='text-2xl font-semibold text-left'>{topic}</p>
-					{viewpoint1 && (
-						<p className='text-md mt-2 text-left'>
-							<strong>• Viewpoint 1:</strong> {viewpoint1}
-						</p>
-					)}
-					{viewpoint2 && (
-						<p className='text-md mt-2 text-left'>
-							<strong>• Viewpoint 2:</strong> {viewpoint2}
-						</p>
+		<div className={`flex flex-col items-center justify-center min-h-screen p-8 bg-gradient-to-br from-blue-100 to-purple-100 ${inter.className}`}>
+			<div className='bg-white rounded-xl shadow-lg p-6 w-full max-w-xl relative'>
+				<div className='bg-gray-50 p-4 mt-4 rounded-lg shadow-sm'>
+					<h2 className='text-xl font-bold text-left mb-3'>{topic}</h2>
+					{viewpoint1 && viewpoint2 && (
+						<div className='space-y-3'>
+							<div className='bg-white p-3 rounded-md shadow-sm'>
+								<h3 className='text-md font-semibold mb-1'>Viewpoint 1:</h3>
+								<p className='text-sm'>{viewpoint1}</p>
+							</div>
+							<div className='bg-white p-3 rounded-md shadow-sm'>
+								<h3 className='text-md font-semibold mb-1'>Viewpoint 2:</h3>
+								<p className='text-sm'>{viewpoint2}</p>
+							</div>
+						</div>
 					)}
 				</div>
 
@@ -154,19 +159,22 @@ const Home = () => {
 				<div className='mt-12 flex justify-between items-center'>
 					<button
 						onClick={generateTopic}
-						className='bg-sky-500 hover:bg-sky-400 text-white font-bold py-2 px-6 rounded-md shadow-md transition duration-300 ease-in-out transform hover:scale-105 flex items-center'
+						className='bg-sky-500 hover:bg-sky-400 text-white font-bold py-2 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:scale-105 flex items-center'
 						disabled={isLoading}
 					>
 						{isLoading ? (
 							<>
-								<svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+								<svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
 									<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
 									<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
 								</svg>
 								Generating...
 							</>
 						) : (
-							'Generate Topic'
+							<>
+								Generate Topic
+								<span role="img" aria-label="Brain" className="ml-2">🤯</span>
+							</>
 						)}
 					</button>
 
