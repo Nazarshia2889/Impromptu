@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const clock = 10;
+const clock = 1;
 
 const NotesPage = () => {
 	const [topic, setTopic] = useState('');
