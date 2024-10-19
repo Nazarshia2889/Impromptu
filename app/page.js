@@ -11,7 +11,44 @@ const Home = () => {
 	const [speakingLength, setSpeakingLength] = useState('2');
 
 	// Configure the Gemini API client
-	const genAI = new GoogleGenerativeAI('AIzaSyBHMuOVy-yoiRGCExfmigCpTxYySWxRBpk');
+	const genAI = new GoogleGenerativeAI('AIzaSyArJ4RqNqt9l4g-9BYIlh0457w1LZIwypI');
+
+	const topics = [
+		'Social Media',
+		'Globalization',
+		'Climate Change',
+		'Education System',
+		'Artificial Intelligence',
+		'Healthcare',
+		'Freedom of Speech',
+		'Economic Inequality',
+		'Technology and Society',
+		'Privacy vs. Security',
+		'Immigration',
+		'Work-Life Balance',
+		'Environmental Sustainability',
+		'Censorship',
+		'Gender Equality',
+		'Space Exploration',
+		'Capitalism vs. Socialism',
+		'Animal Rights',
+		'Genetic Engineering',
+		'Cultural Appropriation',
+		'Gun Control',
+		'Political Polarization',
+		'Cryptocurrency',
+		'Vaccination',
+		'Public Surveillance',
+		'Universal Basic Income',
+		'Internet Censorship',
+		'Renewable Energy',
+		'Consumerism',
+		'Ethics of Autonomous Vehicles',
+	];
+
+	const getRandomChoice = (array) => {
+		return array[Math.floor(Math.random() * array.length)];
+	}
 
 	const schema = {
 		description: 'A debatable topic with two sides to the argument.',
@@ -41,7 +78,10 @@ const Home = () => {
 	// Generate a topic using the Gemini API
 	const generateTopic = async () => {
 		try {
-			const prompt = `i am trying to practice impromptu speaking. generate one speaking topics that are topics that are well known and debatable and have two sides to the argument and no correct answer. here is an example of questions that you should generate. in your actual response, only output a single question:`;
+			const topic = getRandomChoice(topics);
+			console.log(topic);
+
+			const prompt = `i am trying to practice impromptu speaking. generate one speaking question about ${topic} that is well known and debatable and have two sides to the argument and no correct answer. here is an example of questions that you should generate. in your actual response, only output a single question:`;
 
 			const result = await model.generateContent(prompt);
 			console.log(result.response.text());

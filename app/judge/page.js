@@ -8,17 +8,22 @@ export default function RecordingPage() {
 	const [isRecording, setIsRecording] = useState(false); // Initially not recording
 	const [hasStarted, setHasStarted] = useState(false); // Indicates if the user has started recording
 	const [speakingLength, setSpeakingLength] = useState(0); // Speaking time in seconds
+	const [suggestions, setSuggestions] = useState([]); // Suggestions from Gemini
 
-	// Fetch notes and speakingLength from localStorage on page load
+	// Fetch notes, speakingLength, and suggestions from localStorage on page load
 	useEffect(() => {
 		const storedNotes = localStorage.getItem('notes');
 		const storedSpeakingLength = localStorage.getItem('speakingLength');
+		const storedSuggestions = localStorage.getItem('geminiSuggestions');
 
 		if (storedNotes) {
 			setNotes(storedNotes);
 		}
 		if (storedSpeakingLength) {
 			setSpeakingLength(parseInt(storedSpeakingLength, 10));
+		}
+		if (storedSuggestions) {
+			setSuggestions(JSON.parse(storedSuggestions));
 		}
 	}, []);
 
@@ -125,13 +130,23 @@ export default function RecordingPage() {
 			</div>
 
 			{/* Right Section (Notes) */}
-			<div className='w-full sm:w-1/3 lg:w-1/4 p-4 bg-gray-50 border border-gray-300 rounded-lg h-80 flex flex-col'>
+			<div className='w-full sm:w-1/3 lg:w-1/4 p-4 bg-gray-50 border border-gray-300 rounded-lg h-auto flex flex-col'>
 				<h2 className='text-2xl font-bold mb-4'>Previous Notes:</h2>
 				<textarea
-					className='w-full p-3 h-full border border-gray-300 rounded-md bg-gray-50 resize-none'
+					className='w-full p-3 h-40 border border-gray-300 rounded-md bg-gray-50 resize-none mb-4'
 					value={notes}
 					readOnly
 				/>
+
+				{/* Suggestions Section */}
+				<h2 className='text-2xl font-bold mb-4'>Gemini Suggestions:</h2>
+				<ul className='list-disc list-inside'>
+					{suggestions.map((suggestion, index) => (
+						<li key={index} className='text-lg mb-2'>
+							{suggestion}
+						</li>
+					))}
+				</ul>
 			</div>
 		</div>
 	);

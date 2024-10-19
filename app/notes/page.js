@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const clock = 1;
+const clock = 10;
 
 const NotesPage = () => {
 	const [topic, setTopic] = useState('');
@@ -17,7 +17,7 @@ const NotesPage = () => {
 	const router = useRouter();
 
 	// Initialize Gemini API client
-	const genAI = new GoogleGenerativeAI('AIzaSyBHMuOVy-yoiRGCExfmigCpTxYySWxRBpk');
+	const genAI = new GoogleGenerativeAI('AIzaSyArJ4RqNqt9l4g-9BYIlh0457w1LZIwypI');
 
 	const model = genAI.getGenerativeModel({
 		model: 'gemini-1.5-pro-latest',
@@ -48,6 +48,8 @@ const NotesPage = () => {
 			}, 1000 / clock);
 		} else if (timeLeft === 0 && prepTime > 0) {
 			clearInterval(timer);
+			localStorage.setItem('notes', notes);
+			localStorage.setItem('geminiSuggestions', JSON.stringify(suggestions));
 			router.push('/judge'); // Redirect to /judge route when timer reaches 0
 		}
 		return () => clearInterval(timer);
@@ -72,7 +74,11 @@ In a single sentence, provide a concise, thought-provoking question or refutatio
 
 			// Add generated suggestion to list
 			if (suggestion) {
-				setSuggestions((prevSuggestions) => [...prevSuggestions, suggestion]);
+				setSuggestions((prevSuggestions) => {
+					const updatedSuggestions = [...prevSuggestions, suggestion];
+					localStorage.setItem('geminiSuggestions', JSON.stringify(updatedSuggestions));
+					return updatedSuggestions;
+				});
 			}
 		} catch (error) {
 			console.error('Error generating suggestion:', error);
@@ -136,7 +142,7 @@ In a single sentence, provide a concise, thought-provoking question or refutatio
 						value={notes}
 						onChange={(e) => setNotes(e.target.value)}
 						placeholder='Type your notes here...'
-				/>
+					/>
 				</div>
 			</div>
 		</div>
