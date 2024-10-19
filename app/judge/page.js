@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from'@deepgram/sdk';
+//import { createClient } from'@deepgram/sdk';
 import OpenAI from 'openai';
 import Vapi from '@vapi-ai/web';
 
