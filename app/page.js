@@ -81,7 +81,7 @@ const Home = () => {
 					Submit
 				</button>
 			</div>
-			<div className='bg-gray-100 p-6 mt-6 rounded-lg w-full max-w-2xl'>
+			<div className='bg-gray-100 p-6 mt-6 rounded-2xl w-full max-w-2xl'>
 				<p className='text-2xl text-left'>{topic}</p>
 				{viewpoint1 && (
 					<p className='text-md mt-2 text-left'>
