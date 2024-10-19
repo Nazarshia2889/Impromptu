@@ -1,101 +1,129 @@
+'use client'
+
 import Image from "next/image";
+import { useState, useEffect } from "react";
 
 export default function Home() {
+  // State management for topic, notes, and timer
+  const [topic, setTopic] = useState("Click the button to generate a topic!");
+  const [notes, setNotes] = useState("");
+  const [time, setTime] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+
+  // Array of topics to randomly select from
+  const topics = [
+    "Should social media platforms be regulated?",
+    "The impact of artificial intelligence on job markets",
+    "Does technology improve human connection?",
+    "Is climate change the most urgent issue of our time?"
+  ];
+
+  // Generate a random topic
+  const generateTopic = () => {
+    const randomTopic = topics[Math.floor(Math.random() * topics.length)];
+    setTopic(randomTopic);
+  };
+
+  // Timer logic
+  useEffect(() => {
+    let timer;
+    if (isTimerRunning) {
+      timer = setInterval(() => setTime((prevTime) => prevTime + 1), 1000);
+    } else if (!isTimerRunning && time !== 0) {
+      clearInterval(timer);
+    }
+    return () => clearInterval(timer);
+  }, [isTimerRunning]);
+
+  const startTimer = () => {
+    setIsTimerRunning(true);
+  };
+
+  const stopTimer = () => {
+    setIsTimerRunning(false);
+  };
+
+  const resetTimer = () => {
+    setTime(0);
+    setIsTimerRunning(false);
+  };
+
+  // Format time in mm:ss
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+  };
+
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        {/* Topic Section */}
+        <div className="text-center">
+          <button
+            onClick={generateTopic}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
           >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Generate Topic
+          </button>
+          <p className="mt-4 text-lg">{topic}</p>
+        </div>
+
+        {/* Notes Section */}
+        <div className="w-full">
+          <label className="block text-xl font-semibold mb-2">Your Notes:</label>
+          <textarea
+            className="w-full h-40 p-3 border border-gray-300 rounded-md"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Type your notes here..."
+          ></textarea>
+        </div>
+
+        {/* Judges Panel */}
+        <div className="w-full">
+          <h2 className="text-2xl font-semibold mb-4">Judges Panel</h2>
+          <div className="flex justify-between">
+            <div className="bg-white shadow-md p-4 rounded-md w-1/3">
+              <h3 className="text-xl font-bold">Judge 1 (Critical)</h3>
+              <p className="text-gray-600">I'll ask critical questions.</p>
+            </div>
+            <div className="bg-white shadow-md p-4 rounded-md w-1/3 mx-4">
+              <h3 className="text-xl font-bold">Judge 2 (Understanding)</h3>
+              <p className="text-gray-600">I'm here to understand your viewpoint.</p>
+            </div>
+            <div className="bg-white shadow-md p-4 rounded-md w-1/3">
+              <h3 className="text-xl font-bold">Judge 3 (Curious)</h3>
+              <p className="text-gray-600">I'm curious about your ideas.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Timer Section */}
+        <div className="text-center">
+          <button
+            onClick={startTimer}
+            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-4"
           >
-            Read our docs
-          </a>
+            Start Timer
+          </button>
+          <button
+            onClick={stopTimer}
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-4"
+          >
+            Stop Timer
+          </button>
+          <button
+            onClick={resetTimer}
+            className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Reset Timer
+          </button>
+          <p className="mt-4 text-lg">{formatTime(time)}</p>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
