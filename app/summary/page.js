@@ -4,7 +4,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { Inter } from 'next/font/google'
+import { Inter } from 'next/font/google';
+import { Groq } from "groq-sdk";
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -15,6 +16,8 @@ const Summary = () => {
 	const router = useRouter();
 
 	// Initialize Google Generative AI model
+
+	/*
 	const genAI = new GoogleGenerativeAI('AIzaSyDi7hrFxDENoBAdod7VPpUZbLwhkJz9GPk');
 
 	const model = genAI.getGenerativeModel({
@@ -27,6 +30,9 @@ const Summary = () => {
 			temperature: 2,
 		},
 	});
+	*/
+
+	const groq = new Groq({ apiKey: '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', dangerouslyAllowBrowser: true });
 
 	useEffect(() => {
 		// Retrieve history and topic from localStorage
@@ -50,11 +56,24 @@ const Summary = () => {
 		}
 	}, []);
 
+	function getGroqChatCompletion(prompt) {
+	  return groq.chat.completions.create({
+	    messages: [
+	      {
+	        role: "user",
+	        content: prompt,
+	      },
+	    ],
+	    model: "llama3-8b-8192",
+	  });
+	};
+
 	// Function to generate summary from the generative model
 	const generateSummary = async (prompt) => {
 		try {
-			const result = await model.generateContent(prompt);
-			setSummary(result.response.text().trim());
+			const result = await getGroqChatCompletion(prompt);
+  			//model.generateContent(prompt);
+			setSummary((result.choices[0]?.message?.content || ""));
 		} catch (error) {
 			console.error('Error generating summary:', error);
 		}
