@@ -1,257 +1,201 @@
 'use client';
+import { useEffect } from 'react';
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 
-import { useState } from 'react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { Inter } from 'next/font/google'
+const LandingPage = () => {
+	useEffect(() => {
+		const svgElement = document.getElementById('background-svg');
+		if (svgElement) {
+			const elements = svgElement.querySelectorAll('polygon');
 
-const inter = Inter({ subsets: ['latin'] })
+			// Function to make each hexagon move smoothly and randomly
+			elements.forEach((element) => {
+				const randomMovement = () => {
+					const moveX = Math.random() * 4000 - 2000; // Larger screen simulation
+					const moveY = Math.random() * 3000 - 1500; // Larger screen simulation
+					const duration = 20000 + Math.random() * 10000; // Duration between 15-20 seconds to slow down the fastest hexagons
 
-const Home = () => {
-	const [topic, setTopic] = useState('Click the button to generate a topic!');
-	const [viewpoint1, setViewpoint1] = useState('');
-	const [viewpoint2, setViewpoint2] = useState('');
-	const [prepTime, setPrepTime] = useState('30');
-	const [speakingLength, setSpeakingLength] = useState('30');
-	const [isTopicGenerated, setIsTopicGenerated] = useState(false);
-	const [isLoading, setIsLoading] = useState(false);
-	const [currentStep, setCurrentStep] = useState(1);
-
-	// Configure the Gemini API client
-	const genAI = new GoogleGenerativeAI('AIzaSyDi7hrFxDENoBAdod7VPpUZbLwhkJz9GPk');
-
-	const topics = [
-		'Social Media',
-		'Globalization',
-		'Climate Change',
-		'Education System',
-		'Artificial Intelligence',
-		'Healthcare',
-		'Freedom of Speech',
-		'Economic Inequality',
-		'Technology and Society',
-		'Privacy vs. Security',
-		'Immigration',
-		'Work-Life Balance',
-		'Environmental Sustainability',
-		'Censorship',
-		'Gender Equality',
-		'Space Exploration',
-		'Capitalism vs. Socialism',
-		'Animal Rights',
-		'Genetic Engineering',
-		'Cultural Appropriation',
-		'Gun Control',
-		'Political Polarization',
-		'Cryptocurrency',
-		'Vaccination',
-		'Public Surveillance',
-		'Universal Basic Income',
-		'Internet Censorship',
-		'Renewable Energy',
-		'Consumerism',
-		'Ethics of Autonomous Vehicles',
-	];
-
-	const getRandomChoice = (array) => {
-		return array[Math.floor(Math.random() * array.length)];
-	}
-
-	const schema = {
-		description: 'A debatable topic with two sides to the argument.',
-		type: 'object',
-		properties: {
-			question: {
-				type: 'string',
-				description: 'The debatable topic question.',
-			},
-			viewpoint1: {
-				type: 'string',
-				description: 'The first viewpoint on the topic.',
-			},
-			viewpoint2: {
-				type: 'string',
-				description: 'The second viewpoint on the topic.',
-			},
-		},
-		required: ['question', 'viewpoint1', 'viewpoint2'],
-	};
-
-	const model = genAI.getGenerativeModel({
-		model: 'gemini-1.5-flash',
-		generationConfig: { responseMimeType: 'application/json', responseSchema: schema, temperature: 2 },
-	});
-
-	// Generate a topic using the Gemini API
-	const generateTopic = async () => {
-		setIsLoading(true);
-		try {
-			const topic = getRandomChoice(topics);
-			console.log(topic);
-
-			const prompt = `i am trying to practice impromptu speaking. generate one speaking question about ${topic} that is well known and debatable and have two sides to the argument and no correct answer. here is an example of questions that you should generate. in your actual response, only output a single question:`;
-
-			const result = await model.generateContent(prompt);
-			console.log(result.response.text());
-			const data = JSON.parse(result.response.text().trim());
-
-			setTopic(data.question);
-			setViewpoint1(data.viewpoint1);
-			setViewpoint2(data.viewpoint2);
-			setIsTopicGenerated(true);
-		} catch (error) {
-			console.error('Error generating topic:', error);
-		} finally {
-			setIsLoading(false);
+					element.animate(
+						[
+							{ transform: element.style.transform },
+							{
+								transform: `translate(${moveX}px, ${moveY}px) rotate(${element.dataset.rotation}deg)`,
+							},
+						],
+						{
+							duration: duration, // Slower movement
+							easing: 'ease-in-out',
+							iterations: Infinity,
+						}
+					);
+				};
+				randomMovement();
+			});
 		}
-	};
 
-	const handleNextStep = () => {
-		setCurrentStep(2);
-	};
+		// Add smooth scrolling behavior
+		const smoothScroll = (e) => {
+			e.preventDefault();
+			const targetId = e.currentTarget.getAttribute('href');
+			const targetElement = document.querySelector(targetId);
+			if (targetElement) {
+				targetElement.scrollIntoView({ behavior: 'smooth' });
+			}
+		};
 
-	const handleFinalSubmit = () => {
-		localStorage.setItem('topic', topic);
-		localStorage.setItem('viewpoint1', viewpoint1);
-		localStorage.setItem('viewpoint2', viewpoint2);
-		localStorage.setItem('prepTime', prepTime);
-		localStorage.setItem('speakingLength', speakingLength);
-		window.location.href = '/notes';
-	};
+		const learnMoreButton = document.querySelector('#learn-more-button');
+		if (learnMoreButton) {
+			learnMoreButton.addEventListener('click', smoothScroll);
+		}
 
-	const handleBack = () => {
-		setCurrentStep(1);
+		// Clean up event listener
+		return () => {
+			if (learnMoreButton) {
+				learnMoreButton.removeEventListener('click', smoothScroll);
+			}
+		};
+	}, []);
+
+	const carouselSettings = {
+		dots: true,
+		infinite: true,
+		speed: 500,
+		slidesToShow: 1,
+		slidesToScroll: 1,
+		autoplay: true,
+		autoplaySpeed: 5000,
 	};
 
 	return (
-		<>
-			<div className="bg-emoji-pattern"></div>
-			<div className={`flex flex-col items-center justify-center min-h-screen p-8 content-wrapper ${inter.className}`}>
-				<div className='bg-white rounded-xl shadow-lg p-6 w-full max-w-xl relative'>
-					{currentStep === 1 ? (
-						<>
-							{isTopicGenerated ? (
-								<div className='bg-gray-50 p-4 mb-4 rounded-lg shadow-sm'>
-									<h2 className='text-xl font-bold text-left mb-3'>{topic}</h2>
-									<div className='space-y-3'>
-										<div className='bg-white p-3 rounded-md shadow-sm'>
-											<h3 className='text-md font-semibold mb-1'>Viewpoint 1:</h3>
-											<p className='text-sm'>{viewpoint1}</p>
-										</div>
-										<div className='bg-white p-3 rounded-md shadow-sm'>
-											<h3 className='text-md font-semibold mb-1'>Viewpoint 2:</h3>
-											<p className='text-sm'>{viewpoint2}</p>
-										</div>
-									</div>
-								</div>
-							) : (
-								<div className='text-center mb-4 text-gray-600'>
-									Click the button below to generate a topic!
-								</div>
-							)}
+		<div className='flex flex-col justify-between min-h-screen text-center bg-tan-100 text-gray-800 overflow-hidden'>
+			<header className='flex justify-between items-center px-8 py-6'>
+				<div className='text-3xl font-extrabold text-gray-900 font-sans'>Impromptu 🗣️🗣️🗣️</div>
+				{/* <nav className="flex gap-8">
+          <a
+            href="#features"
+            className="text-lg font-medium hover:text-gray-600 transition-colors duration-300 font-sans"
+          >
+            Features
+          </a>
+          <a
+            href="#about"
+            className="text-lg font-medium hover:text-gray-600 transition-colors duration-300 font-sans"
+          >
+            About
+          </a>
+          <a
+            href="#contact"
+            className="text-lg font-medium hover:text-gray-600 transition-colors duration-300 font-sans"
+          >
+            Contact
+          </a>
+        </nav> */}
+			</header>
 
-							<button
-								onClick={generateTopic}
-								className='w-full bg-sky-500 hover:bg-sky-400 text-white font-bold py-3 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:scale-102 flex items-center justify-center mb-4'
-								disabled={isLoading}
-							>
-								{isLoading ? (
-									<>
-										<svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-											<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-											<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-										</svg>
-										Generating...
-									</>
-								) : (
-									<>
-										Generate Topic
-										<span role="img" aria-label="Brain" className="ml-2">🤯</span>
-									</>
-								)}
-							</button>
-
-							<button
-								className={`w-full ${
-									isTopicGenerated
-										? 'bg-green-500 hover:bg-green-400 hover:scale-102'
-										: 'bg-gray-400 cursor-not-allowed'
-								} text-white font-bold py-3 px-8 rounded-md shadow-md transition duration-300 ease-in-out transform flex items-center justify-center`}
-								onClick={handleNextStep}
-								disabled={!isTopicGenerated}
-							>
-								Next
-								<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
-									<path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-								</svg>
-							</button>
-						</>
-					) : (
-						<>
-							<div className='bg-gray-50 p-4 mb-6 rounded-lg shadow-sm'>
-								<h2 className='text-xl font-bold text-left mb-3'>{topic}</h2>
-								<div className='space-y-3'>
-									<div className='bg-white p-3 rounded-md shadow-sm'>
-										<h3 className='text-md font-semibold mb-1'>Viewpoint 1:</h3>
-										<p className='text-sm'>{viewpoint1}</p>
-									</div>
-									<div className='bg-white p-3 rounded-md shadow-sm'>
-										<h3 className='text-md font-semibold mb-1'>Viewpoint 2:</h3>
-										<p className='text-sm'>{viewpoint2}</p>
-									</div>
-								</div>
-							</div>
-
-							<div className='space-y-4 mb-6'>
-								<div className='flex flex-col'>
-									<label className='text-md font-semibold mb-2'>Preparation Time (seconds):</label>
-									<input
-										type='number'
-										value={prepTime}
-										onChange={(e) => setPrepTime(e.target.value)}
-										className='p-2 border border-gray-300 rounded-md w-full'
-										placeholder='Enter preparation time'
+			<section className='flex flex-col items-center justify-center flex-grow relative py-24 min-h-[70vh]'>
+				<div className='absolute inset-0 opacity-20'>
+					<svg
+						id='background-svg'
+						className='w-full h-full transition-transform duration-200 ease-out'
+						xmlns='http://www.w3.org/2000/svg'
+						fill='none'
+						stroke='gray'
+						strokeWidth='2'
+					>
+						<g>
+							{[...Array(50)].map((_, i) => {
+								const size = 100 + Math.random() * 600;
+								const rotation = Math.random() * 360;
+								return (
+									<polygon
+										key={i}
+										points={`${size / 2},0 ${size},${size / 4} ${size},${(size / 4) * 3} ${
+											size / 2
+										},${size} 0,${(size / 4) * 3} 0,${size / 4}`}
+										fill='none'
+										data-rotation={rotation}
+										style={{
+											transform: `translate(${Math.random() * 4000 - 2000}px, ${
+												Math.random() * 3000 - 1500
+											}px) rotate(${rotation}deg)`,
+											opacity: 0.6,
+										}}
 									/>
-								</div>
-								<div className='flex flex-col'>
-									<label className='text-md font-semibold mb-2'>Speaking Length (seconds):</label>
-									<input
-										type='number'
-										value={speakingLength}
-										onChange={(e) => setSpeakingLength(e.target.value)}
-										className='p-2 border border-gray-300 rounded-md w-full'
-										placeholder='Enter speaking length'
-									/>
-								</div>
-							</div>
-
-							<div className='flex justify-between'>
-								<button
-									onClick={handleBack}
-									className='bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:scale-102'
-								>
-									Back
-								</button>
-								<button
-									className={`${
-										prepTime && speakingLength
-											? 'bg-green-500 hover:bg-green-400 hover:scale-102'
-											: 'bg-gray-400 cursor-not-allowed'
-									} text-white font-bold py-2 px-8 rounded-md shadow-md transition duration-300 ease-in-out transform flex items-center`}
-									onClick={handleFinalSubmit}
-									disabled={!prepTime || !speakingLength}
-								>
-									Next
-									<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
-										<path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-									</svg>
-								</button>
-							</div>
-						</>
-					)}
+								);
+							})}
+						</g>
+					</svg>
 				</div>
-			</div>
-		</>
+				<h1 className='text-7xl font-bold mb-12 leading-tight z-10 text-gray-900 font-sans'>
+					Speak Boldly
+				</h1>
+				<p className='text-2xl font-light mb-16 max-w-2xl z-10 font-sans'>
+					Transform your impromptu speaking skills with real-time insights and thoughtful prompts.
+				</p>
+				<div className='flex space-x-6'>
+					<button
+						className='bg-sky-500 hover:bg-sky-400 text-white font-bold py-3 px-10 rounded-lg shadow-lg transition-transform transform hover:scale-105 z-10 text-lg'
+						onClick={() => (window.location.href = '/gen')}
+					>
+						Get Started Now
+					</button>
+					<button
+						id='learn-more-button'
+						href='#features'
+						className='bg-white hover:bg-sky-50 text-sky-500 font-bold py-3 px-10 rounded-lg shadow-lg transition-transform transform hover:scale-105 z-10 border-2 border-sky-500 text-lg'
+					>
+						Learn More
+					</button>
+				</div>
+			</section>
+
+			<section id='features' className='bg-gray-100 py-24 px-8'>
+				<h2 className='text-4xl font-bold mb-12 text-gray-900 font-sans'>Our Features</h2>
+				<Slider {...carouselSettings} className='max-w-4xl mx-auto'>
+					<div className='px-4'>
+						<img
+							src='/gemini-suggestions.gif'
+							alt='Gemini-Powered Suggestions'
+							className='w-3/4 h-[450px] object-cover rounded-lg mb-4 mx-auto'
+						/>
+						<h3 className='text-2xl font-semibold mb-2 text-gray-800'>
+							Gemini-Powered Suggestions
+						</h3>
+						<p className='text-gray-600'>
+							Receive intelligent suggestions and insights from our Gemini AI, based on your speech
+							notes, to enhance your impromptu speaking performance and content delivery.
+						</p>
+					</div>
+					<div className='px-4'>
+						<img
+							src='/topic-generator.gif'
+							alt='Dynamic Topic Generator'
+							className='w-3/4 h-[450px] object-cover rounded-lg mb-4 mx-auto'
+						/>
+						<h3 className='text-2xl font-semibold mb-2 text-gray-800'>Dynamic Topic Generator</h3>
+						<p className='text-gray-600'>
+							Challenge yourself with our intelligent topic generator, designed to provide
+							thought-provoking subjects tailored to your skill level and interests.
+						</p>
+					</div>
+					<div className='px-4'>
+						<img
+							src='/temp.png'
+							alt='Real-time Judge Feedback'
+							className='w-3/4 h-[450px] object-cover rounded-lg mb-4 mx-auto'
+						/>
+						<h3 className='text-2xl font-semibold mb-2 text-gray-800'>Real-time Judge Feedback</h3>
+						<p className='text-gray-600'>
+							Engage in dynamic conversations with AI judges who provide immediate, constructive
+							feedback on your impromptu speeches, simulating real-world speaking scenarios.
+						</p>
+					</div>
+				</Slider>
+			</section>
+		</div>
 	);
 };
 
-export default Home;
+export default LandingPage;
