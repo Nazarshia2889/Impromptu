@@ -40,7 +40,7 @@ const NotesPage = () => {
         setViewpoint2(localStorage.getItem('viewpoint2'));
         const prepTimeValue = localStorage.getItem('prepTime');
         setPrepTime(prepTimeValue);
-        setTimeLeft(prepTimeValue ? prepTimeValue * 60 : 0); // Initialize timer with prep time in seconds
+        setTimeLeft(prepTimeValue ? prepTimeValue : 0); // Initialize timer with prep time in seconds
     }, []);
 
     // Timer logic
