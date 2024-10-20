@@ -1,7 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const NotesSection = ({ notes, suggestions }) => {
 	const [currentNotes, setCurrentNotes] = useState(notes);
+
+	useEffect(() => {
+		setCurrentNotes(notes);
+	}, [notes]);
 
 	return (
 		<div>
