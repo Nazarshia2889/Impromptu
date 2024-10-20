@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { formatTime } from '../utils/utils';
+import { startMicrophoneStream, handleAudioFile } from '../services/apiService';
 
 const RecordingSection = ({
 	isRecording,
@@ -9,8 +10,6 @@ const RecordingSection = ({
 	time,
 	setTime,
 	speakingLength,
-	startMicrophoneStream,
-	handleAudioFile,
 }) => {
 	// Timer logic
 	useEffect(() => {
