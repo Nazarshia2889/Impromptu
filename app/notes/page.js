@@ -24,7 +24,7 @@ const NotesPage = () => {
     const genAI = new GoogleGenerativeAI('AIzaSyDi7hrFxDENoBAdod7VPpUZbLwhkJz9GPk');
 
     const model = genAI.getGenerativeModel({
-        model: 'gemini-1.5-pro-latest',
+        model: 'gemini-1.5-flash',
         generationConfig: {
             responseSchema: {
                 type: 'object',
