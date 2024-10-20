@@ -69,7 +69,7 @@ const Summary = () => {
 					<div className='bg-gray-50 p-3 rounded-md mb-4'>
 						<h2 className='text-lg font-semibold'>{topic || 'Loading topic...'}</h2>
 					</div>
-					<h2 className='text-xl font-semibold mb-3'>Summary of Feedback</h2>
+					<h2 className='text-xl font-semibold mb-3'>Summary of Session</h2>
 					<div className='bg-gray-50 p-4 rounded-md'>
 						<p className='text-base text-gray-700'>{summary || 'Loading summary...'}</p>
 					</div>

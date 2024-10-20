@@ -52,7 +52,7 @@ export default function RecordingPage() {
 				's3://voice-cloning-zero-shot/7b97b543-7877-41b6-86ee-aa1e0b6c110e/dicksaad/manifest.json',
 			assistant_name: 'Arnav Gupta',
 			content:
-				'You are a supportive impromptu speech judge. The user has just finished their speech.',
+				"You are an impromptu speech judge. Lightly challenge the ideas in the user's speech. The user has just finished their speech.",
 		},
 		vapi3: {
 			assistant_id: 'd7f80236-caa5-47a7-94fe-ae8705f77bf1',
@@ -134,29 +134,6 @@ export default function RecordingPage() {
 		// Set the speaking judge
 		setSpeakingJudge(curr_name);
 
-		// Translate code
-		// if (curr_name == "vapi") {
-		// 	j1.style.className = 'translateY(-0.5rem)';
-		// }
-		// else {
-		// 	j1.style.className = 'translateY(0)';
-		// }
-
-		// if (curr_name == "vapi2") {
-		// 	j2.style.className = 'translateY(-0.5rem)';
-		// }
-		// else {
-		// 	j2.style.className = 'translateY(0)';
-		// }
-
-		// if (curr_name == "vapi3") {
-		// 	j3.style.className = 'translateY(-0.5rem)';
-		// }
-		// else {
-		// 	j3.style.className = 'translateY(0)';
-		// }
-
-		// // End Translate Code
 
 		let totalResponse = '';
 
@@ -200,7 +177,7 @@ export default function RecordingPage() {
 		curr.on('message', (message) => {
 			// if transcript type exist and equals "final"
 			if (message.transcriptType === 'final') {
-				totalResponse += message.transcript;
+				totalResponse += message.transcript + "";
 			}
 		});
 
@@ -212,9 +189,10 @@ export default function RecordingPage() {
 		curr.on('speech-end', () => {
 			localStorage.setItem(
 				'history',
-				vapiMap[curr_name]['assistant_name'] + ': ' + totalResponse + '\n'
+				localStorage.getItem("history") + vapiMap[curr_name]['assistant_name'] + ': ' + totalResponse + '\n'
 			);
-			console.log('END.');
+      console.log('VAPI History: ', localStorage.getItem('history'));
+			console.log('VAPI END.');
 			curr.stop();
 			setSpeakingJudge(null);
 			setCurrentSpeaker('User');
@@ -368,7 +346,7 @@ export default function RecordingPage() {
 				<button className='absolute bottom-4 right-4 bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-6 rounded w-44' onClick={() => {
           window.location.href = '/summary';
         }}>
-					End Feedback
+					End Session
 				</button>
 			</div>
 
