@@ -16,7 +16,7 @@ const Home = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     // Configure the Gemini API client
-    const genAI = new GoogleGenerativeAI('AIzaSyA23HxnKQOt9aIH5CKA0bscts1Nl7ZSbcc');
+    const genAI = new GoogleGenerativeAI('AIzaSyC1TqhOqsiYuMLilytOF7cBGgh8NEiPtRQ');
 
     const topics = [
         'Social Media',

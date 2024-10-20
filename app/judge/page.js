@@ -172,9 +172,9 @@ export default function RecordingPage() {
 
 	return (
 		<div className='min-h-screen bg-gray-100 p-8 flex'>
-			<button onClick={() => {toggleMute(vapi)}} className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded'>
+			{/* <button onClick={() => {toggleMute(vapi)}} className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded'>
 				{muted ? 'Unmute' : 'Mute'}
-			</button>
+			</button> */}
 			{/* Left Section (Recording + Judges) */}
 			<div className='w-2/3 p-4 flex flex-col'>
 				{/* Timer in the upper right corner */}

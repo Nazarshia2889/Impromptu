@@ -21,7 +21,7 @@ const NotesPage = () => {
     const router = useRouter();
 
     // Initialize Gemini API client
-    const genAI = new GoogleGenerativeAI('AIzaSyA23HxnKQOt9aIH5CKA0bscts1Nl7ZSbcc');
+    const genAI = new GoogleGenerativeAI('AIzaSyC1TqhOqsiYuMLilytOF7cBGgh8NEiPtRQ');
 
     const model = genAI.getGenerativeModel({
         model: 'gemini-1.5-pro-latest',
