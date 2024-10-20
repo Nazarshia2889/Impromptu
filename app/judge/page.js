@@ -331,7 +331,7 @@ export default function RecordingPage() {
               <div className="mb-16"></div>
               <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-24 h-24 rounded-full bg-gray-300 overflow-hidden border-4 border-white">
                 <img
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSFKr4MIyosXeoVASWbJuBY_1ix3zEur2LDpw&s"
+                  src="nd.jpg"
                   alt="Judge 1"
                   className="w-full h-full object-cover"
                 />
