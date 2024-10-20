@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-// import { createClient } from'@deepgram/sdk';
-import OpenAI from 'openai';
 import Vapi from '@vapi-ai/web';
 import { Inter } from 'next/font/google';
+import Groq from "groq-sdk";
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,13 +21,13 @@ export default function RecordingPage() {
 	const [speakingJudge, setSpeakingJudge] = useState(null);
 	const [topic, setTopic] = useState(''); // New state for topic
 	const [currentSpeaker, setCurrentSpeaker] = useState(''); // Changed initial value to empty string
-
-	const OpenAI_API_KEY =
-		'sk-svcacct-MsWzbVh34xzDn4h13C2S_G0Cw9MhJaLCUxx3Ohz8Ww1bgjA3tyWNcK6H40oF6ruzBT3BlbkFJEEX1pjM--9F2VvJMnfgl9xDxmmTfYmD-jcyQwWy4S_ui_BHl6OKyN1CeYa93VDs9AA';
-	const openai = new OpenAI({
-		apiKey: OpenAI_API_KEY,
-		dangerouslyAllowBrowser: true,
-	});
+  
+  const Groq_API_KEY =
+		'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';
+  const groq = new Groq({
+    	apiKey: Groq_API_KEY,
+    	dangerouslyAllowBrowser: true,
+    });
 
 	const vapi = new Vapi('bc70d4a2-9563-4172-bdb2-712b4084ba27');
 	const vapi2 = new Vapi('bc70d4a2-9563-4172-bdb2-712b4084ba27');
@@ -40,14 +39,14 @@ export default function RecordingPage() {
 	// map of vapis and assistant id
 	const vapiMap = {
 		vapi: {
-			assistant_id: '181a8564-58b5-4168-ad01-b53fa5f8f06e',
+			assistant_id: 'bbeaf50b-cbaa-4c1b-bd28-73b2238bc005',
 			voice_id: 'jennifer',
 			assistant_name: 'Wayne Shaw',
 			content:
 				"You are a critical impromptu speech judge. Challenge the ideas in the user's speech. The user has just finished their speech.",
 		},
 		vapi2: {
-			assistant_id: '205d0a42-d818-495c-9496-7fee04e2d98c',
+			assistant_id: 'cac623e3-8a99-4af1-b912-df5e40006ba5',
 			voice_id:
 				's3://voice-cloning-zero-shot/7b97b543-7877-41b6-86ee-aa1e0b6c110e/dicksaad/manifest.json',
 			assistant_name: 'Arnav Gupta',
@@ -55,9 +54,9 @@ export default function RecordingPage() {
 				"You are an impromptu speech judge. Lightly challenge the ideas in the user's speech. The user has just finished their speech.",
 		},
 		vapi3: {
-			assistant_id: 'd7f80236-caa5-47a7-94fe-ae8705f77bf1',
+			assistant_id: 'aed0de90-da0e-4370-a943-a0fd319d01f0',
 			voice_id: 'chris',
-			assistant_name: '6th Grader',
+			assistant_name: 'Venkatesh Irigireddy',
 			content:
 				"You are a curious impromptu speech judge. Question the ideas in the user's speech. The user has just finished their speech.",
 		},
@@ -117,9 +116,7 @@ export default function RecordingPage() {
 			stream.getTracks().forEach((track) => track.stop()); // Stop microphone stream
 		}
 
-		const transcript = await transcribeAudio();
-		localStorage.setItem('transcription', transcript); // Save transcription in localStorage
-		localStorage.setItem('history', `User Speech: ` + transcript + '\n');
+		localStorage.setItem('history', `MY SPEECH: ` + localStorage.getItem('transcript') + '\n');
 
 		// Execute VAPI interaction
 		executeVapiInteraction();
@@ -133,7 +130,6 @@ export default function RecordingPage() {
 
 		// Set the speaking judge
 		setSpeakingJudge(curr_name);
-
 
 		let totalResponse = '';
 
@@ -164,12 +160,15 @@ export default function RecordingPage() {
 
 		console.log('VAPI STARTED');
 
+    console.log('Consider the previous chat history when responding to the speech giver: ' +
+					localStorage.getItem('history'));
+
 		curr.send({
 			type: 'add-message',
 			message: {
 				role: 'user',
 				content:
-					'Consider the previous chat history when responding to the user: ' +
+					'Consider the previous chat history when responding to the speech giver: ' +
 					localStorage.getItem('history'),
 			},
 		});
@@ -177,7 +176,12 @@ export default function RecordingPage() {
 		curr.on('message', (message) => {
 			// if transcript type exist and equals "final"
 			if (message.transcriptType === 'final') {
-				totalResponse += message.transcript + "";
+        if(message.role === 'assistant') {
+				  totalResponse += vapiMap[curr_name]['assistant_name'] + ': ' + message.transcript + "\n";
+        }
+        else if(message.role === 'user') {
+          totalResponse += 'User: ' + message.transcript + "\n";
+        }
 			}
 		});
 
@@ -189,9 +193,9 @@ export default function RecordingPage() {
 		curr.on('speech-end', () => {
 			localStorage.setItem(
 				'history',
-				localStorage.getItem("history") + vapiMap[curr_name]['assistant_name'] + ': ' + totalResponse + '\n'
+				localStorage.getItem("history") + totalResponse + '\n'
 			);
-      console.log('VAPI History: ', localStorage.getItem('history'));
+      console.log('VAPI History After: ', localStorage.getItem('history'));
 			console.log('VAPI END.');
 			curr.stop();
 			setSpeakingJudge(null);
@@ -220,6 +224,9 @@ export default function RecordingPage() {
 				const audioBlob = new Blob(chunks, { type: 'audio/mp3' });
 				console.log('Audio Blob: ', audioBlob);
 				setAudioChunks(audioBlob); // Store audio data in memory
+
+        const file = new File([audioBlob], 'recording.mp3', { type: 'audio/mp3' });
+        transcribeAudio(file);
 			};
 			mediaRecorder.start();
 
@@ -229,23 +236,25 @@ export default function RecordingPage() {
 		});
 	};
 
-	const transcribeAudio = async () => {
-		if (audioChunks.length > 0) {
-			const file = new File([audioChunks], 'recording.mp3', {
-				type: 'audio/mp3',
-			});
+	const transcribeAudio = async (file) => {
+		try {
 
 			const formData = new FormData();
 			formData.append('file', file);
 
-			const transcription = await openai.audio.transcriptions.create({
-				file: formData.get('file'),
-				model: 'whisper-1',
-			});
+      const transcription = await groq.audio.transcriptions.create({
+        file: formData.get('file'),
+        model: "whisper-large-v3-turbo",
+        response_format: "verbose_json",
+      });
 
 			console.log('Transcription: ', transcription.text);
+      localStorage.setItem('transcript', transcription.text);
 			return transcription.text;
 		}
+    catch (error) {
+      console.error('Error transcribing audio:', error);
+    }
 	};
 
 	return (
