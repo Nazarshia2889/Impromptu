@@ -7,6 +7,7 @@ import Vapi from '@vapi-ai/web';
 
 
 export default function RecordingPage() {
+	const [muted, setIsMuted] = useState(false);
 	const [notes, setNotes] = useState('');
 	const [transcript, setTranscript] = useState('');
 	const [time, setTime] = useState(0);
@@ -18,10 +19,10 @@ export default function RecordingPage() {
 	let mediaRecorder = null;
 	let stream = null;
 
-	const OpenAI_API_KEY = ""
+	const OpenAI_API_KEY = "sk-svcacct-MsWzbVh34xzDn4h13C2S_G0Cw9MhJaLCUxx3Ohz8Ww1bgjA3tyWNcK6H40oF6ruzBT3BlbkFJEEX1pjM--9F2VvJMnfgl9xDxmmTfYmD-jcyQwWy4S_ui_BHl6OKyN1CeYa93VDs9AA"
 
-	const openai = new OpenAI({ apiKey: OpenAI_API_KEY , dangerouslyAllowBrowser: true});
-	const vapi = new Vapi("");
+	const openai = new OpenAI({ apiKey: OpenAI_API_KEY, dangerouslyAllowBrowser: true });
+	const vapi = new Vapi("bc70d4a2-9563-4172-bdb2-712b4084ba27");
 
 	const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 
@@ -74,40 +75,46 @@ export default function RecordingPage() {
 
 			stream.getTracks().forEach((track) => track.stop()); // Stop microphone stream
 		}
-		const transcript = await transcribeAudio();
-		localStorage.setItem('transcription', transcript); // Save transcription in localStorage
-		setTranscript(transcript);
+
+		console.log(transcript);
 
 		vapi.start("181a8564-58b5-4168-ad01-b53fa5f8f06e", {
 			transcriber: {
-			  provider: "deepgram",
-			  model: "nova-2",
-			  language: "en-US",
+				provider: "deepgram",
+				model: "nova-2",
+				language: "en-US",
 			},
 			model: {
-			  provider: "openai",
-			  model: "gpt-3.5-turbo",
-			  messages: [
-				{
-				  role: "system",
-				  content: "You are a critical impromptu speech judge. Challenge the ideas in the user's speech after they give it.",
-				},
-			  ],
+				provider: "openai",
+				model: "gpt-3.5-turbo",
+				messages: [
+					{
+						role: "system",
+						content: "You are a critical impromptu speech judge. Challenge the ideas in the user's speech after they give it.",
+					},
+				],
 			},
 			voice: {
-			  provider: "playht",
-			  voiceId: "jennifer",
+				provider: "playht",
+				voiceId: "jennifer",
 			},
 			name: "Critical Judge",
+		});
+
+		vapi.on("call-start", () => {
+			// vapi.setMuted(true);
+			console.log("Muted");
+			// setIsMuted(!muted);
+			vapi.send({
+				type: "add-message",
+				message: {
+					role: "user",
+					content: "The user has finished their speech. Respond to the user by challenging or questioning their ideas. Here is the speech: \n" + localStorage.getItem("transcript"),
+				},
+			}
+			);
 		  });
 
-		  vapi.send({
-			type: "add-message",
-			message: {
-			  role: "system",
-			  content: "The user has finished their speech. Please start the discussion. Here is the speech: " + transcript,
-			},
-		  });
 	};
 
 	// Format time in mm:ss
@@ -118,47 +125,56 @@ export default function RecordingPage() {
 	};
 
 	const startMicrophoneStream = (duration) => {
-		// Get the microphone stream and store audio data in memory
 		navigator.mediaDevices.getUserMedia({ audio: true }).then((micStream) => {
 			stream = micStream;
 			mediaRecorder = new MediaRecorder(stream);
 			let chunks = [];
+
 			mediaRecorder.ondataavailable = (event) => {
+				// Push audio data chunks into the array
 				chunks.push(event.data);
 			};
+
 			mediaRecorder.onstop = () => {
 				const audioBlob = new Blob(chunks, { type: 'audio/mp3' });
-				console.log('Audio Blob: ', audioBlob);
-				setAudioChunks(audioBlob); // Store audio data in memory
+				setAudioChunks(chunks); // Save raw chunks in state (optional)
+
+				// Optionally use this blob elsewhere
+				const file = new File([audioBlob], 'recording.mp3', { type: 'audio/mp3' });
+				handleAudioFile(file);  // Pass to a function that transcribes
 			};
+
 			mediaRecorder.start();
 
 			setTimeout(() => {
-				stopRecording();
-			}, duration * 1000); // Stop recording after the specified duration
+				stopRecording(); // Stop recording after specified duration
+			}, duration * 1000);
 		});
 	};
-	
 
-	const transcribeAudio = async () => {
-		if(audioChunks.length > 0) {
-			const file = new File([audioChunks], 'recording.mp3', { type: 'audio/mp3' });
-
+	const handleAudioFile = (file) => {
+		try {
 			const formData = new FormData();
 			formData.append('file', file);
 
-			const transcription = await openai.audio.transcriptions.create({
+			const transcription = openai.audio.transcriptions.create({
 				file: formData.get('file'),
 				model: "whisper-1",
-			});
-
-			console.log("Transcription: ", transcription.text)
-			return transcription.text;
+			}).then((response) => {
+				localStorage.setItem("transcript", response.text) // Store transcription in state
+				console.log("Transcript: ", localStorage.getItem("transcript"));
+			})
+			
+		} catch (error) {
+			console.error("Error during transcription:", error);
 		}
 	};
 
 	return (
 		<div className='min-h-screen bg-gray-100 p-8 flex'>
+			<button onClick={() => {toggleMute(vapi)}} className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded'>
+				{muted ? 'Unmute' : 'Mute'}
+			</button>
 			{/* Left Section (Recording + Judges) */}
 			<div className='w-2/3 p-4 flex flex-col'>
 				{/* Timer in the upper right corner */}
@@ -171,11 +187,10 @@ export default function RecordingPage() {
 					{/* Show recording status only after user clicks start */}
 					{hasStarted && (
 						<div
-							className={`w-full p-4 rounded-lg border text-center mb-4 ${
-								isRecording
+							className={`w-full p-4 rounded-lg border text-center mb-4 ${isRecording
 									? 'bg-red-100 border-red-500 text-red-600'
 									: 'bg-gray-200 border-gray-400 text-gray-600'
-							}`}
+								}`}
 						>
 							{isRecording ? 'Recording in Progress...' : 'Recording Stopped'}
 						</div>
