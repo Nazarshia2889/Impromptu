@@ -10,8 +10,8 @@ const Home = () => {
     const [topic, setTopic] = useState('Click the button to generate a topic!');
     const [viewpoint1, setViewpoint1] = useState('');
     const [viewpoint2, setViewpoint2] = useState('');
-    const [prepTime, setPrepTime] = useState('1');
-    const [speakingLength, setSpeakingLength] = useState('2');
+    const [prepTime, setPrepTime] = useState('30');
+    const [speakingLength, setSpeakingLength] = useState('30');
     const [isTopicGenerated, setIsTopicGenerated] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
