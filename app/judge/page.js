@@ -15,11 +15,13 @@ export default function RecordingPage() {
 
 	useEffect(() => {
 		const storedNotes = localStorage.getItem('notes');
+		console.log(storedNotes);
+
 		const storedSpeakingLength = localStorage.getItem('speakingLength');
 		const storedSuggestions = localStorage.getItem('geminiSuggestions');
 
 		if (storedNotes) setNotes(storedNotes);
-		if (storedSpeakingLength) setSpeakingLength(parseInt(storedSpeakingLength, 10) * 60);
+		if (storedSpeakingLength) setSpeakingLength(parseInt(storedSpeakingLength, 10));
 		if (storedSuggestions) setSuggestions(JSON.parse(storedSuggestions));
 	}, []);
 

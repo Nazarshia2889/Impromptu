@@ -1,15 +1,12 @@
 import { useState } from 'react';
 
 const NotesSection = ({ notes, suggestions }) => {
-	const [currentNotes, setCurrentNotes] = useState(notes);
-
 	return (
 		<div>
 			<h2 className='text-2xl font-bold mb-4'>Your Notes:</h2>
 			<textarea
 				className='w-full p-3 h-40 border border-gray-300 rounded-md bg-gray-50 resize-none mb-4'
-				value={currentNotes}
-				onChange={(e) => setCurrentNotes(e.target.value)}
+				value={notes}
 			/>
 			<h2 className='text-2xl font-bold mb-4'>Suggestions:</h2>
 			<ul className='list-disc pl-5'>
