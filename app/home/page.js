@@ -34,6 +34,28 @@ const LandingPage = () => {
         randomMovement();
       });
     }
+
+    // Add smooth scrolling behavior
+    const smoothScroll = (e) => {
+      e.preventDefault();
+      const targetId = e.currentTarget.getAttribute("href");
+      const targetElement = document.querySelector(targetId);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: "smooth" });
+      }
+    };
+
+    const learnMoreButton = document.querySelector("#learn-more-button");
+    if (learnMoreButton) {
+      learnMoreButton.addEventListener("click", smoothScroll);
+    }
+
+    // Clean up event listener
+    return () => {
+      if (learnMoreButton) {
+        learnMoreButton.removeEventListener("click", smoothScroll);
+      }
+    };
   }, []);
 
   const carouselSettings = {
@@ -47,12 +69,12 @@ const LandingPage = () => {
   };
 
   return (
-    <div className=" flex flex-col justify-between min-h-screen text-center bg-tan-100 text-gray-800 overflow-hidden">
+    <div className="flex flex-col justify-between min-h-screen text-center bg-tan-100 text-gray-800 overflow-hidden">
       <header className="flex justify-between items-center px-8 py-6">
         <div className="text-3xl font-extrabold text-gray-900 font-sans">
           Impromptu 🗣️🗣️🗣️
         </div>
-        <nav className="flex gap-8">
+        {/* <nav className="flex gap-8">
           <a
             href="#features"
             className="text-lg font-medium hover:text-gray-600 transition-colors duration-300 font-sans"
@@ -71,7 +93,7 @@ const LandingPage = () => {
           >
             Contact
           </a>
-        </nav>
+        </nav> */}
       </header>
 
       <section className="flex flex-col items-center justify-center flex-grow relative py-24 min-h-[70vh]">
@@ -117,14 +139,15 @@ const LandingPage = () => {
         </p>
         <div className="flex space-x-6">
           <button
-            className="bg-sky-500 hover:bg-sky-400 text-white font-bold py-4 px-12 rounded-lg shadow-lg transition-transform transform hover:scale-105 z-10 text-xl"
+            className="bg-sky-500 hover:bg-sky-400 text-white font-bold py-3 px-10 rounded-lg shadow-lg transition-transform transform hover:scale-105 z-10 text-lg"
             onClick={() => (window.location.href = "/")}
           >
             Get Started Now
           </button>
           <button
-            className="bg-white hover:bg-sky-50 text-sky-500 font-bold py-4 px-12 rounded-lg shadow-lg transition-transform transform hover:scale-105 z-10 border-2 border-sky-500 text-xl"
-            onClick={() => (window.location.href = "/")}
+            id="learn-more-button"
+            href="#features"
+            className="bg-white hover:bg-sky-50 text-sky-500 font-bold py-3 px-10 rounded-lg shadow-lg transition-transform transform hover:scale-105 z-10 border-2 border-sky-500 text-lg"
           >
             Learn More
           </button>
