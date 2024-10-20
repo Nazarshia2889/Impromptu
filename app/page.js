@@ -17,7 +17,7 @@ const Home = () => {
 	const [currentStep, setCurrentStep] = useState(1);
 
 	// Configure the Gemini API client
-	const genAI = new GoogleGenerativeAI('AIzaSyC1TqhOqsiYuMLilytOF7cBGgh8NEiPtRQ');
+	const genAI = new GoogleGenerativeAI('AIzaSyDi7hrFxDENoBAdod7VPpUZbLwhkJz9GPk');
 
 	const topics = [
 		'Social Media',
