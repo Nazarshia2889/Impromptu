@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from'@deepgram/sdk';
+// import { createClient } from'@deepgram/sdk';
 import OpenAI from 'openai';
 import Vapi from '@vapi-ai/web';
 
@@ -18,11 +18,12 @@ export default function RecordingPage() {
 	let mediaRecorder = null;
 	let stream = null;
 
-	const OpenAI_API_KEY = "OPEN_API_KEY"
+	const OpenAI_API_KEY = ""
 
 	const openai = new OpenAI({ apiKey: OpenAI_API_KEY , dangerouslyAllowBrowser: true});
-	const vapi = new Vapi("bc70d4a2-9563-4172-bdb2-712b4084ba27");
+	const vapi = new Vapi("");
 
+	const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 
 	// Fetch notes, speakingLength, and suggestions from localStorage on page load
 	useEffect(() => {
@@ -48,7 +49,7 @@ export default function RecordingPage() {
 			timer = setInterval(() => {
 				setTime((prevTime) => prevTime + 1);
 			}, 1000);
-		} else if (time >= speakingLength) {
+		} else if (time > speakingLength) {
 			setIsRecording(false); // Stop recording after speakingLength is reached
 			stopRecording();
 		}
@@ -70,6 +71,7 @@ export default function RecordingPage() {
 		setIsRecording(false);
 		if (mediaRecorder && stream) {
 			mediaRecorder.stop();
+
 			stream.getTracks().forEach((track) => track.stop()); // Stop microphone stream
 		}
 		const transcript = await transcribeAudio();
@@ -126,6 +128,7 @@ export default function RecordingPage() {
 			};
 			mediaRecorder.onstop = () => {
 				const audioBlob = new Blob(chunks, { type: 'audio/mp3' });
+				console.log('Audio Blob: ', audioBlob);
 				setAudioChunks(audioBlob); // Store audio data in memory
 			};
 			mediaRecorder.start();
@@ -135,22 +138,23 @@ export default function RecordingPage() {
 			}, duration * 1000); // Stop recording after the specified duration
 		});
 	};
+	
 
 	const transcribeAudio = async () => {
-		console.log(audioChunks)
+		if(audioChunks.length > 0) {
+			const file = new File([audioChunks], 'recording.mp3', { type: 'audio/mp3' });
 
-		const file = new File([audioChunks], 'recording.mp3', { type: 'audio/mp3' });
+			const formData = new FormData();
+			formData.append('file', file);
 
-		const formData = new FormData();
-		formData.append('file', file);
+			const transcription = await openai.audio.transcriptions.create({
+				file: formData.get('file'),
+				model: "whisper-1",
+			});
 
-		const transcription = await openai.audio.transcriptions.create({
-			file: formData.get('file'),
-			model: "whisper-1",
-		  });
-
-		  console.log("Transcription: ", transcription.text)
-		  return transcription.text;
+			console.log("Transcription: ", transcription.text)
+			return transcription.text;
+		}
 	};
 
 	return (
