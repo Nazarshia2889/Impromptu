@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getNotesSuggestionsPrompt } from './prompt';
 
 const genAI = new GoogleGenerativeAI('AIzaSyB42v6cizIL79D3Pchj117Zgi65nyLgjTg');
 const model = genAI.getGenerativeModel({
@@ -14,11 +15,7 @@ const model = genAI.getGenerativeModel({
 
 export const getSuggestionsFromGemini = async (topic, notes) => {
 	try {
-		const prompt = `Here is a debate topic: "${topic}".
-User Notes: ${notes}
-
-In a single sentence, provide a concise, thought-provoking question or refutation to challenge the user's current arguments. Do not label your response with a header. If the user notes are empty, return an empty string.`;
-
+		const prompt = getNotesSuggestionsPrompt(topic, notes);
 		const result = await model.generateContent(prompt);
 		return result.response.text().trim();
 	} catch (error) {
