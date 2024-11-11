@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import useTimer from '@/hooks/useTimer';
 import Timer from '@/components/ui/Timer';
 import Suggestions from '@/components/notes/Suggestions';
 import NotesEditor from '@/components/notes/NotesEditor';
@@ -13,9 +12,6 @@ const NotesPage = () => {
 	const [prepTime, setPrepTime] = useState(null); // Set to null initially to indicate it's not ready yet
 	const [notes, setNotes] = useState('');
 	const router = useRouter();
-
-	// Timer state
-	const [timeLeft, setTimeLeft] = useState(null);
 
 	const handleTimerEnd = () => {
 		localStorage.setItem('notes', notes);
@@ -31,25 +27,17 @@ const NotesPage = () => {
 		if (savedTopic && !isNaN(prepTimeValue)) {
 			setTopic(savedTopic);
 			setPrepTime(prepTimeValue);
-			setTimeLeft(prepTimeValue); // Set the initial value for the timer
 		}
 	}, []);
 
-	// Use the timer hook only when prepTime is set and valid
-	const timerEnabled = prepTime !== null && timeLeft !== null;
-	const [currentTimer, setCurrentTimer] = useTimer(timerEnabled ? timeLeft : null, handleTimerEnd);
-
-	useEffect(() => {
-		if (timerEnabled) {
-			setCurrentTimer(timeLeft);
-		}
-	}, [timerEnabled, timeLeft, setCurrentTimer]);
-
 	return (
 		<div className='min-h-screen bg-gray-100 p-8 flex flex-col items-center'>
-			{timerEnabled && (
+			{prepTime !== null && ( // Render only after prepTime is loaded
 				<>
-					<Timer timeLeft={currentTimer} />
+					{/* Timer Wrapper to align Timer to the right */}
+					<div className='w-full flex justify-end mb-4'>
+						<Timer initialTime={prepTime} onTimerEnd={handleTimerEnd} />
+					</div>
 					<TopicDisplay topic={topic} />
 					<div className='w-full flex gap-4 max-w-6xl'>
 						<Suggestions topic={topic} notes={notes} />
