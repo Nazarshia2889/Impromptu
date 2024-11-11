@@ -119,7 +119,7 @@ prompt = '''i am trying to practice impromptu speaking. generate one speaking to
 ]
 '''
 
-model = genai.GenerativeModel("gemini-1.5-pro-latest")
+model = genai.GenerativeModel("gemini-1.5-flash")
 result = model.generate_content(
 	prompt,
 	generation_config=genai.GenerationConfig(

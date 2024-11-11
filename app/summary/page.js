@@ -4,6 +4,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Inter } from 'next/font/google';
+import { Groq } from "groq-sdk";
+
+const inter = Inter({ subsets: ['latin'] })
 
 const Summary = () => {
 	const [history, setHistory] = useState([]);
@@ -12,7 +16,9 @@ const Summary = () => {
 	const router = useRouter();
 
 	// Initialize Google Generative AI model
-	const genAI = new GoogleGenerativeAI('AIzaSyDRwIal7m0dpzSsMchvzKuPxXZnYe8ZD54');
+
+	/*
+	const genAI = new GoogleGenerativeAI('AIzaSyDi7hrFxDENoBAdod7VPpUZbLwhkJz9GPk');
 
 	const model = genAI.getGenerativeModel({
 		model: 'gemini-1.5-pro-latest',
@@ -24,6 +30,9 @@ const Summary = () => {
 			temperature: 2,
 		},
 	});
+	*/
+
+	const groq = new Groq({ apiKey: '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', dangerouslyAllowBrowser: true });
 
 	useEffect(() => {
 		// Retrieve history and topic from localStorage
@@ -47,53 +56,49 @@ const Summary = () => {
 		}
 	}, []);
 
+	function getGroqChatCompletion(prompt) {
+	  return groq.chat.completions.create({
+	    messages: [
+	      {
+	        role: "user",
+	        content: prompt,
+	      },
+	    ],
+	    model: "llama3-8b-8192",
+	  });
+	};
+
 	// Function to generate summary from the generative model
 	const generateSummary = async (prompt) => {
 		try {
-			const result = await model.generateContent(prompt);
-			setSummary(result.response.text().trim());
+			const result = await getGroqChatCompletion(prompt);
+  			//model.generateContent(prompt);
+			setSummary((result.choices[0]?.message?.content || ""));
 		} catch (error) {
 			console.error('Error generating summary:', error);
 		}
 	};
 
-	const style = {
-		position: 'fixed',
-		top: 0,
-		left: 0,
-		width: '100%',
-		height: '100%',
-		backgroundColor: '#e0eef2',
-		backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' transform='rotate(30)'%3E%3Ctext x='25' y='75' font-size='40'%3E%3C/text%3E%3C/svg%3E"),
-											url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' transform='rotate(30)'%3E%3Ctext x='25' y='75' font-size='40'%3E%3C/text%3E%3C/svg%3E")`,
-		backgroundRepeat: 'repeat',
-		backgroundSize: '300px 300px',
-		backgroundPosition: '0 0, 150px 150px', // Staggered position for second layer
-		animation: 'float 360s linear infinite',
-		filter: 'brightness(1.3) contrast(0.7) sepia(0.1) opacity(0.7)', // "Lifted" whites effect
-		zIndex: -1,
-	};
-
 	return (
 		<>
-			<div style={style}></div>
-			<div className='flex flex-col items-center p-8 min-h-screen bg-gray-100'>
-				<div className='w-full max-w-3xl bg-white rounded-lg shadow-md p-8 mt-12'>
-					<h1 className='text-3xl font-bold text-center mb-6'>Topic Question</h1>
-					<div className='bg-blue-50 p-4 rounded-md mb-6'>
-						<h2 className='text-xl font-semibold'>{topic || 'Loading topic...'}</h2>
+			<div className="bg-emoji-pattern2"></div>
+			<div className={`flex flex-col items-center p-8 min-h-screen content-wrapper ${inter.className}`}>
+				<div className='w-full max-w-xl bg-white rounded-xl shadow-md p-6 mt-12'>
+					<h1 className='text-2xl font-bold text-center mb-4'>Topic Question</h1>
+					<div className='bg-gray-50 p-3 rounded-md mb-4'>
+						<h2 className='text-lg font-semibold'>{topic || 'Loading topic...'}</h2>
 					</div>
-					<h2 className='text-2xl font-semibold mb-4'>Summary of Feedback</h2>
-					<div className='bg-gray-50 p-6 rounded-md'>
-						<p className='text-lg text-gray-700'>{summary || 'Loading summary...'}</p>
+					<h2 className='text-xl font-semibold mb-3'>Summary of Session</h2>
+					<div className='bg-gray-50 p-4 rounded-md'>
+						<p className='text-base text-gray-700'>{summary || 'Loading summary...'}</p>
 					</div>
 				</div>
-				<div className='w-full max-w-3xl mt-8 flex justify-end'>
+				<div className='w-full max-w-xl mt-6 flex justify-end'>
 					<button
-						className='bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-all'
-						onClick={() => router.push('/')}
+						className='font-semibold bg-sky-500 text-white text-sm py-2 px-4 rounded hover:bg-sky-400 transition-all'
+						onClick={() => router.push('/gen')}
 					>
-						Run it Back!
+						Run it Back 😈
 					</button>
 				</div>
 			</div>
