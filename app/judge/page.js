@@ -6,7 +6,6 @@ import { RealtimeClient } from '@openai/realtime-api-beta';
 
 const inter = Inter({ subsets: ['latin'] });
 const DURATION = 10;
-// localStorage.setItem('history', '');
 
 export default function RecordingPage() {
 	const [notes, setNotes] = useState('');
@@ -22,6 +21,11 @@ export default function RecordingPage() {
 	const [audioStreamRef, setAudioStreamRef] = useState(null);
 	const [audioContext, setAudioContext] = useState(null);
 	const [client, setClient] = useState(null);
+
+	useEffect(() => {
+		localStorage.setItem('history', '');
+	}, []);
+
 	// Initialize client and set up event handlers
 	useEffect(() => {
 		const newClient = new RealtimeClient({
@@ -48,6 +52,7 @@ export default function RecordingPage() {
 			}
 		};
 	}, []);
+
 	useEffect(() => {
 		const storedNotes = localStorage.getItem('notes');
 		const storedSpeakingLength = localStorage.getItem('speakingLength');
