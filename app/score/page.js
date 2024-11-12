@@ -96,7 +96,7 @@ const Summary = () => {
 				<div className='w-full max-w-xl mt-6 flex justify-end'>
 					<button
 						className='font-semibold bg-sky-500 text-white text-sm py-2 px-4 rounded hover:bg-sky-400 transition-all'
-						onClick={() => router.push('/gen')}
+						onClick={() => router.push('/')}
 					>
 						Run it Back 😈
 					</button>

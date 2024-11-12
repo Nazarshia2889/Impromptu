@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getSuggestionsFromGemini } from '@/utils/gemini';
+import { getSuggestionsFromGemini } from '@/utils/noteSuggestion';
 
 const Suggestions = ({ topic, notes }) => {
 	const [suggestions, setSuggestions] = useState([]);

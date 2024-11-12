@@ -1,25 +1,8 @@
-import { useEffect, useState } from 'react';
+import { memo } from 'react';
+import useStableTimer from '@/hooks/useStableTimer';
 
-const Timer = ({ initialTime, onTimerEnd }) => {
-	const [timeLeft, setTimeLeft] = useState(initialTime);
-
-	useEffect(() => {
-		if (initialTime === null || initialTime <= 0) return;
-
-		let timer;
-		if (timeLeft > 0) {
-			timer = setInterval(() => {
-				setTimeLeft((prevTime) => prevTime - 1);
-			}, 1000);
-		} else if (timeLeft === 0) {
-			clearInterval(timer);
-			if (onTimerEnd) {
-				onTimerEnd();
-			}
-		}
-
-		return () => clearInterval(timer);
-	}, [timeLeft, onTimerEnd]);
+const Timer = memo(({ initialTime, onTimerEnd }) => {
+	const timeLeft = useStableTimer(initialTime, onTimerEnd);
 
 	// Format time as mm:ss
 	const formatTime = (seconds) => {
@@ -33,6 +16,8 @@ const Timer = ({ initialTime, onTimerEnd }) => {
 			Timer: {formatTime(timeLeft)} ⏱️
 		</div>
 	);
-};
+});
+
+Timer.displayName = 'Timer';
 
 export default Timer;
