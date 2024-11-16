@@ -1,109 +1,93 @@
-// Improved Version of Feedback Summary Component with Enhanced Styling
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { Inter } from 'next/font/google';
-import { Groq } from "groq-sdk";
+import { useEffect, useState } from 'react';
+import { getScorePrompt, groqStructureToolsParameters } from '@/utils/prompt';
+import Groq from 'groq-sdk';
 
-const inter = Inter({ subsets: ['latin'] })
-
-const Summary = () => {
-	const [history, setHistory] = useState([]);
-	const [summary, setSummary] = useState('');
+const Score = () => {
+	const [history, setHistory] = useState('');
 	const [topic, setTopic] = useState('');
-	const router = useRouter();
+	const [score, setScore] = useState({});
 
-	// Initialize Google Generative AI model
-
-	/*
-	const genAI = new GoogleGenerativeAI('AIzaSyDi7hrFxDENoBAdod7VPpUZbLwhkJz9GPk');
-
-	const model = genAI.getGenerativeModel({
-		model: 'gemini-1.5-pro-latest',
-		generationConfig: {
-			responseSchema: {
-				type: 'object',
-				properties: { text: { type: 'string' } },
-			},
-			temperature: 2,
-		},
+	const groq = new Groq({
+		apiKey: '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',
+		dangerouslyAllowBrowser: true,
 	});
-	*/
 
-	const groq = new Groq({ apiKey: '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', dangerouslyAllowBrowser: true });
-
+	// Fetch and set topic and history from localStorage
 	useEffect(() => {
-		// Retrieve history and topic from localStorage
 		const storedHistory = localStorage.getItem('history');
 		const storedTopic = localStorage.getItem('topic');
-		if (storedHistory) {
-			setHistory(storedHistory);
-			// Improved prompt to specify summary details
-			const prompt = `Please create a concise summary of the feedback provided by the judges based on the transcript below. Consider the following points for a good summary:
 
-      - Focus on the key positive and negative feedback.
-      - Highlight suggestions for improvement.
-      - Provide an overall impression given by the judges.
-
-      Transcript:
-      ${storedHistory}`;
-			generateSummary(prompt);
-		}
 		if (storedTopic) {
 			setTopic(storedTopic);
 		}
+
+		if (storedHistory) {
+			setHistory(storedHistory);
+		}
 	}, []);
 
-	function getGroqChatCompletion(prompt) {
-	  return groq.chat.completions.create({
-	    messages: [
-	      {
-	        role: "user",
-	        content: prompt,
-	      },
-	    ],
-	    model: "llama3-8b-8192",
-	  });
+	// Run getScore only when topic and history are set
+	useEffect(() => {
+		if (topic && history) {
+			getScore();
+		}
+	}, [topic, history]);
+
+	// Define async function for Groq API call with structured output
+	const getGroqChatCompletion = async (prompt) => {
+		return await groq.chat.completions.create({
+			model: 'llama3-groq-70b-8192-tool-use-preview',
+			messages: [
+				{
+					role: 'user',
+					content: prompt,
+				},
+			],
+			tools: groqStructureToolsParameters,
+			tool_choice: 'auto',
+		});
 	};
 
-	// Function to generate summary from the generative model
-	const generateSummary = async (prompt) => {
+	// Fetch score based on topic and history
+	const getScore = async () => {
 		try {
+			console.log('topic:', topic);
+			console.log('history:', history);
+
+			const prompt = getScorePrompt(topic, history);
 			const result = await getGroqChatCompletion(prompt);
-  			//model.generateContent(prompt);
-			setSummary((result.choices[0]?.message?.content || ""));
+			setScore(JSON.parse(result.choices[0]?.message?.content) || {});
 		} catch (error) {
-			console.error('Error generating summary:', error);
+			console.error('Error getting score:', error);
 		}
 	};
 
+	console.log(score);
+
+	const categories = Object.keys(score);
+
 	return (
-		<>
-			<div className="bg-emoji-pattern2"></div>
-			<div className={`flex flex-col items-center p-8 min-h-screen content-wrapper ${inter.className}`}>
-				<div className='w-full max-w-xl bg-white rounded-xl shadow-md p-6 mt-12'>
-					<h1 className='text-2xl font-bold text-center mb-4'>Topic Question</h1>
-					<div className='bg-gray-50 p-3 rounded-md mb-4'>
-						<h2 className='text-lg font-semibold'>{topic || 'Loading topic...'}</h2>
+		<div className='p-6 max-w-lg mx-auto font-sans'>
+			<h2 className='text-center text-2xl font-semibold text-gray-800 mb-6'>
+				Speech Evaluation Summary
+			</h2>
+			<div className='grid gap-6'>
+				{categories.map((category) => (
+					<div key={category} className='border border-gray-200 rounded-lg p-4 bg-gray-50'>
+						<h3 className='text-lg font-medium text-blue-600 mb-2 capitalize'>
+							{category.replace(/_/g, ' ')}
+						</h3>
+						<p className='text-sm font-semibold text-gray-700'>
+							Score: <span className='font-normal'>{score[category].score} / 10</span>
+						</p>
+						<p className='text-gray-600 mt-2'>{score[category].justification}</p>
 					</div>
-					<h2 className='text-xl font-semibold mb-3'>Summary of Session</h2>
-					<div className='bg-gray-50 p-4 rounded-md'>
-						<p className='text-base text-gray-700'>{summary || 'Loading summary...'}</p>
-					</div>
-				</div>
-				<div className='w-full max-w-xl mt-6 flex justify-end'>
-					<button
-						className='font-semibold bg-sky-500 text-white text-sm py-2 px-4 rounded hover:bg-sky-400 transition-all'
-						onClick={() => router.push('/')}
-					>
-						Run it Back 😈
-					</button>
-				</div>
+				))}
 			</div>
-		</>
+		</div>
 	);
 };
 
-export default Summary;
+export default Score;
