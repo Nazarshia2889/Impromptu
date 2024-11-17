@@ -15,6 +15,7 @@ const TopicSection = ({ onNext }) => {
 			const topicsForCategory = questions[category]?.[specificity] || [];
 			if (topicsForCategory.length > 0) {
 				const randomTopic = topicsForCategory[Math.floor(Math.random() * topicsForCategory.length)];
+				localStorage.setItem('topic', randomTopic);
 				setTopic(randomTopic);
 			} else {
 				setTopic('No topics available for the selected options.');
