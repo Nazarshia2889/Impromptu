@@ -16,19 +16,17 @@ export default function RecordingPage() {
 	const [speakingLength, setSpeakingLength] = useState(0);
 	const [suggestions, setSuggestions] = useState([]);
 	const [timeLeft, setTimeLeft] = useState(0);
-	const [speakingJudge, setSpeakingJudge] = useState(null);
 	const [topic, setTopic] = useState(''); // New state for topic
 	const [currentSpeaker, setCurrentSpeaker] = useState(''); // Changed initial value to empty string
 
 	let mediaRecorder = null;
 	let stream = null;
-	let history = [{ role: "system", content: `You are a speech judge. The user will start by giving an impromptu speech about this topic: ${topic}. Challenge or question their ideas.` }];
+	let history = [{ role: "system", content: `You are a speech judge. The user will start by giving an impromptu speech about this topic: ${topic}. Challenge or question their ideas. Please keep it CONCISE.` }];
 
 	const Groq_API_KEY =
 		'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';
 	const transcribeGroq = new Groq({ apiKey: Groq_API_KEY, dangerouslyAllowBrowser: true });
 	const groq = new Groq({ apiKey: Groq_API_KEY, dangerouslyAllowBrowser: true });
-
 	const openai = new OpenAI({ apiKey: '', dangerouslyAllowBrowser: true });
 
 
@@ -84,7 +82,6 @@ export default function RecordingPage() {
 			mediaRecorder.stop();
 			stream.getTracks().forEach((track) => track.stop()); // Stop microphone stream
 		}
-
 		localStorage.setItem('history', `MY SPEECH: ` + localStorage.getItem('transcript') + '\n');
 	};
 
@@ -145,7 +142,7 @@ export default function RecordingPage() {
 			messages: history,
 			model: "llama3-8b-8192",
 			temperature: 0.5,
-			max_tokens: 1024,
+			max_tokens: 256,
 			top_p: 1,
 			stop: null,
 			stream: false,
@@ -165,6 +162,7 @@ export default function RecordingPage() {
 				input: responseText,
 			});
 			const buffer = Buffer.from(await mp3.arrayBuffer());
+			setCurrentSpeaker('Judge');
 			playAudioBrowser(buffer);
 		} catch (error) {
 			console.error("Error:", error);
@@ -231,7 +229,7 @@ export default function RecordingPage() {
 					<div className='grid grid-cols-3 gap-4  mt-10 '>
 						{/* Judge 1 */}
 						<div
-							className={`bg-white shadow-md p-4 rounded-lg relative ${speakingJudge === 'vapi' ? 'bg-yellow-100 transform -translate-y-3.5' : ''
+							className={`bg-white shadow-md p-4 rounded-lg relative ${currentSpeaker === 'Judge' ? 'bg-yellow-100 transform -translate-y-3.5' : ''
 								} transition-all duration-300`}
 						>
 							<h3 className='text-xl font-semibold mb-2'>Wayne Shaw</h3>
@@ -241,36 +239,6 @@ export default function RecordingPage() {
 							<div className='mb-16'></div>
 							<div className='absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-24 h-24 rounded-full bg-gray-300 overflow-hidden border-4 border-white'>
 								<img src='nd.jpg' alt='Judge 1' className='w-full h-full object-cover' />
-							</div>
-						</div>
-
-						{/* Judge 2 */}
-						<div
-							className={`bg-white shadow-md p-4 rounded-lg relative ${speakingJudge === 'vapi2' ? 'bg-yellow-100 transform -translate-y-3.5' : ''
-								} transition-all duration-300`}
-						>
-							<h3 className='text-xl font-semibold mb-2'>Arnav Gupta</h3>
-							<p className='text-gray-600 mb-4'>
-								Provide <span className='font-bold'>understanding</span> feedback on the speech.
-							</p>
-							<div className='mb-16'></div>
-							<div className='absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-24 h-24 rounded-full bg-gray-300 overflow-hidden border-4 border-white'>
-								<img src='nav.jpg' alt='Judge 2' className='w-full h-full object-cover' />
-							</div>
-						</div>
-
-						{/* Judge 3 */}
-						<div
-							className={`bg-white shadow-md p-4 rounded-lg relative ${speakingJudge === 'vapi3' ? 'bg-yellow-100 transform -translate-y-3.5' : ''
-								} transition-all duration-300`}
-						>
-							<h3 className='text-xl font-semibold mb-2'>6th Grader</h3>
-							<p className='text-gray-600 mb-4'>
-								Provide <span className='font-bold'>curious</span> feedback on the speech.
-							</p>
-							<div className='mb-16'></div>
-							<div className='absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-24 h-24 rounded-full bg-gray-300 overflow-hidden border-4 border-white'>
-								<img src='st.jpg' alt='Judge 3' className='w-full h-full object-cover' />
 							</div>
 						</div>
 					</div>
