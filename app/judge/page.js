@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Inter } from 'next/font/google';
-import Groq from "groq-sdk";
+import Groq from 'groq-sdk';
 
-import OpenAI from "openai";
+import OpenAI from 'openai';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -21,14 +21,20 @@ export default function RecordingPage() {
 
 	let mediaRecorder = null;
 	let stream = null;
-	let history = [{ role: "system", content: `You are a speech judge. The user will start by giving an impromptu speech about this topic: ${topic}. Challenge or question their ideas. Please keep it CONCISE.` }];
+	let history = [
+		{
+			role: 'system',
+			content: `You are a speech judge. The user will start by giving an impromptu speech about this topic: ${topic}. Challenge or question their ideas. Please keep it CONCISE.`,
+		},
+	];
 
-	const Groq_API_KEY =
-		'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';
+	const Groq_API_KEY = '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';
 	const transcribeGroq = new Groq({ apiKey: Groq_API_KEY, dangerouslyAllowBrowser: true });
 	const groq = new Groq({ apiKey: Groq_API_KEY, dangerouslyAllowBrowser: true });
-	const openai = new OpenAI({ apiKey: '', dangerouslyAllowBrowser: true });
-
+	const openai = new OpenAI({
+		apiKey: '',
+		dangerouslyAllowBrowser: true,
+	});
 
 	useEffect(() => {
 		const storedNotes = localStorage.getItem('notes');
@@ -117,30 +123,28 @@ export default function RecordingPage() {
 
 	const transcribeAudio = async (file) => {
 		try {
-
 			const formData = new FormData();
 			formData.append('file', file);
 			const transcription = await transcribeGroq.audio.transcriptions.create({
 				file: formData.get('file'),
-				model: "distil-whisper-large-v3-en",
-				response_format: "verbose_json",
+				model: 'distil-whisper-large-v3-en',
+				response_format: 'verbose_json',
 			});
 
 			console.log('Transcription: ', transcription.text);
 			// localStorage.setItem('transcript', transcription.text);
-			await getResponse(transcription.text)
+			await getResponse(transcription.text);
 			return transcription.text;
-		}
-		catch (error) {
+		} catch (error) {
 			console.error('Error transcribing audio:', error);
 		}
 	};
 
 	const getResponse = async (userText) => {
-		history.push({ role: "user", content: userText });
+		history.push({ role: 'user', content: userText });
 		let response = await groq.chat.completions.create({
 			messages: history,
-			model: "llama3-8b-8192",
+			model: 'llama3-8b-8192',
 			temperature: 0.5,
 			max_tokens: 256,
 			top_p: 1,
@@ -148,24 +152,24 @@ export default function RecordingPage() {
 			stream: false,
 		});
 		response = response.choices[0]?.message?.content;
-		history.push({ role: "assistant", content: response });
+		history.push({ role: 'assistant', content: response });
 		console.log('Response: ', response);
 		getAndPlayAudio(response);
 		return response;
-	}
+	};
 
 	const getAndPlayAudio = async (responseText) => {
 		try {
 			const mp3 = await openai.audio.speech.create({
-				model: "tts-1",
-				voice: "alloy",
+				model: 'tts-1',
+				voice: 'alloy',
 				input: responseText,
 			});
 			const buffer = Buffer.from(await mp3.arrayBuffer());
 			setCurrentSpeaker('Judge');
 			playAudioBrowser(buffer);
 		} catch (error) {
-			console.error("Error:", error);
+			console.error('Error:', error);
 		}
 	};
 
@@ -214,10 +218,11 @@ export default function RecordingPage() {
 				{/* Recording Status */}
 				{hasStarted && (
 					<div
-						className={`w-full p-4 rounded-lg border text-center mb-4 ${isRecording
-							? 'bg-gray-200 border-gray-400 text-gray-600'
-							: 'bg-red-100 border-red-500 text-red-600'
-							}`}
+						className={`w-full p-4 rounded-lg border text-center mb-4 ${
+							isRecording
+								? 'bg-gray-200 border-gray-400 text-gray-600'
+								: 'bg-red-100 border-red-500 text-red-600'
+						}`}
 					>
 						{isRecording ? 'Recording in Progress...' : 'Recording Stopped'}
 					</div>
@@ -229,8 +234,9 @@ export default function RecordingPage() {
 					<div className='grid grid-cols-3 gap-4  mt-10 '>
 						{/* Judge 1 */}
 						<div
-							className={`bg-white shadow-md p-4 rounded-lg relative ${currentSpeaker === 'Judge' ? 'bg-yellow-100 transform -translate-y-3.5' : ''
-								} transition-all duration-300`}
+							className={`bg-white shadow-md p-4 rounded-lg relative ${
+								currentSpeaker === 'Judge' ? 'bg-yellow-100 transform -translate-y-3.5' : ''
+							} transition-all duration-300`}
 						>
 							<h3 className='text-xl font-semibold mb-2'>Wayne Shaw</h3>
 							<p className='text-gray-600 mb-4'>
@@ -245,9 +251,12 @@ export default function RecordingPage() {
 				</div>
 			</div>
 			<div className='relative'>
-				<button className='absolute bottom-4 right-4 bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-6 rounded w-44' onClick={() => {
-					window.location.href = '/summary';
-				}}>
+				<button
+					className='absolute bottom-4 right-4 bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-6 rounded w-44'
+					onClick={() => {
+						window.location.href = '/score';
+					}}
+				>
 					End Session
 				</button>
 			</div>
