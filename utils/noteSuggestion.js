@@ -1,14 +1,13 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getNotesSuggestionsPrompt } from './prompt';
+import dotenv from 'dotenv';
 
-const genAI = new GoogleGenerativeAI('AIzaSyB42v6cizIL79D3Pchj117Zgi65nyLgjTg');
+dotenv.config();
+
+const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({
 	model: 'gemini-1.5-flash',
 	generationConfig: {
-		responseSchema: {
-			type: 'object',
-			properties: { text: { type: 'string', maxLength: 64 } },
-		},
 		temperature: 2,
 	},
 });

@@ -3,8 +3,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Inter } from 'next/font/google';
 import Groq from 'groq-sdk';
-
 import OpenAI from 'openai';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,11 +30,12 @@ export default function RecordingPage() {
 		},
 	];
 
-	const Groq_API_KEY = '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';
+	const Groq_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY;
 	const transcribeGroq = new Groq({ apiKey: Groq_API_KEY, dangerouslyAllowBrowser: true });
 	const groq = new Groq({ apiKey: Groq_API_KEY, dangerouslyAllowBrowser: true });
+
 	const openai = new OpenAI({
-		apiKey: '',
+		apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
 		dangerouslyAllowBrowser: true,
 	});
 
