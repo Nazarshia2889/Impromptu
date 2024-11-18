@@ -5,12 +5,13 @@ import { Inter } from 'next/font/google';
 import Groq from 'groq-sdk';
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
+import CryptoJS from 'crypto-js';
 
 dotenv.config();
 
 const inter = Inter({ subsets: ['latin'] });
 
-export default function RecordingPage() {
+const RecordingPage = () => {
 	const [notes, setNotes] = useState('');
 	const [time, setTime] = useState(0);
 	const [isRecording, setIsRecording] = useState(false);
@@ -34,8 +35,20 @@ export default function RecordingPage() {
 	const transcribeGroq = new Groq({ apiKey: Groq_API_KEY, dangerouslyAllowBrowser: true });
 	const groq = new Groq({ apiKey: Groq_API_KEY, dangerouslyAllowBrowser: true });
 
+	const decrypt = (encryptedText, secretKey, fixedIV) => {
+		const key = CryptoJS.enc.Utf8.parse(secretKey.padEnd(16, ' ')); // Pad to 16 bytes
+		const iv = CryptoJS.enc.Utf8.parse(fixedIV.padEnd(16, ' ')); // Pad to 16 bytes
+
+		const decrypted = CryptoJS.AES.decrypt(encryptedText, key, {
+			iv: iv,
+			mode: CryptoJS.mode.CBC,
+			padding: CryptoJS.pad.Pkcs7,
+		});
+		return decrypted.toString(CryptoJS.enc.Utf8); // Convert to UTF-8 string
+	};
+
 	const openai = new OpenAI({
-		apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+		apiKey: decrypt('k6WWM4UaGJ4/4K18CUvQh0XJkWoxn96WCRmyVz9o4ciklSrWQaAoMtHlK9IizAPOnFwR6WCa7uDK36eq3WqZkGCwR1D9CbLiLoX18OXRx6iHeKOz9r2vkvikatcNr279doO57bjtY86j0zoFbyaLHu3qzdcrlvVQMB5qBb+FkpiMi2rhEMjnp+ZCEFD8beEkvR5jCWsfm6L0NvjW5JqEZAnMFJN+puMV8hqc0FfWm9o=', 'irigga', 'haas'),
 		dangerouslyAllowBrowser: true,
 	});
 
@@ -296,4 +309,6 @@ export default function RecordingPage() {
 			</div>
 		</div>
 	);
-}
+};
+
+export default RecordingPage;

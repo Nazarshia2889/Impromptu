@@ -17,6 +17,7 @@
     "@openai/realtime-api-beta": "github:openai/openai-realtime-api-beta",
     "@vapi-ai/web": "^2.1.4",
     "axios": "^1.7.7",
+    "crypto-js": "^4.2.0",
     "dotenv": "^16.4.5",
     "groq-sdk": "^0.7.0",
     "next": "14.2.15",
