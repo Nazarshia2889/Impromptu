@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Timer from '@/components/ui/Timer';
 import Suggestions from '@/components/notes/Suggestions';
@@ -11,13 +11,20 @@ const NotesPage = () => {
 	const [topic, setTopic] = useState('');
 	const [prepTime, setPrepTime] = useState(null); // Set to null initially to indicate it's not ready yet
 	const [notes, setNotes] = useState('');
+	const notesRef = useRef(notes);
 	const router = useRouter();
 
-	const handleTimerEnd = () => {
-		localStorage.setItem('notes', notes);
+	// Update notesRef whenever notes change
+	useEffect(() => {
+		notesRef.current = notes;
+	}, [notes]);
+
+	// Memoize handleTimerEnd so it doesn't change on every render
+	const handleTimerEnd = useCallback(() => {
+		localStorage.setItem('notes', notesRef.current);
 		localStorage.setItem('geminiSuggestions', JSON.stringify([]));
 		router.push('/judge'); // Redirect to /judge route when timer reaches 0
-	};
+	}, [router]);
 
 	// Load initial data for topic and prep time
 	useEffect(() => {
