@@ -16,7 +16,7 @@ const Score = () => {
 
 	// Fetch and set topic and history from localStorage
 	useEffect(() => {
-		const storedHistory = localStorage.getItem('history');
+		const storedHistory = localStorage.getItem('transcript');
 		const storedTopic = localStorage.getItem('topic');
 
 		if (storedTopic) {

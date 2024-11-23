@@ -21,15 +21,17 @@ const RecordingPage = () => {
 	const [timeLeft, setTimeLeft] = useState(0);
 	const [topic, setTopic] = useState(''); // New state for topic
 	const [currentSpeaker, setCurrentSpeaker] = useState(''); // Changed initial value to empty string
+	const [transcript, setTranscript] = useState(''); // New state for transcript
 
 	let mediaRecorder = null;
 	let stream = null;
 	let history = [
 		{
 			role: 'system',
-			content: `You are a speech judge. The user will start by giving an impromptu speech about this topic: ${topic}. Challenge or question their ideas. Please keep it CONCISE.`,
+			content: `You are a speech judge. The user will start by giving an impromptu speech about this topic: ${topic}. Challenge or question their ideas. Please limit to a maximum of two sentences. Be direct and speak at the level of an intelligent high school student.`,
 		},
 	];
+	// let transcript = "";
 
 	const Groq_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY;
 	const transcribeGroq = new Groq({ apiKey: Groq_API_KEY, dangerouslyAllowBrowser: true });
@@ -48,7 +50,8 @@ const RecordingPage = () => {
 	};
 
 	const openai = new OpenAI({
-		apiKey: decrypt('k6WWM4UaGJ4/4K18CUvQh0XJkWoxn96WCRmyVz9o4ciklSrWQaAoMtHlK9IizAPOnFwR6WCa7uDK36eq3WqZkGCwR1D9CbLiLoX18OXRx6iHeKOz9r2vkvikatcNr279doO57bjtY86j0zoFbyaLHu3qzdcrlvVQMB5qBb+FkpiMi2rhEMjnp+ZCEFD8beEkvR5jCWsfm6L0NvjW5JqEZAnMFJN+puMV8hqc0FfWm9o=', 'irigga', 'haas'),
+		apiKey:
+			decrypt('Gv3D1aeJ2wpA7qaCIal9qt55ayPMq6L9cEWqJxS/Pg2UCU73YqoRnVmodqq/ova/6zn1J7EhmuTyRu+dCkAPK54U0YAy1+7oyRDnOhpvVaNf+/1Fd/2IaBoESxXctti9j/J2HO3S/HpHaXuep1cRO9/Q5fsw/0/6qGfKIpfDKAKqtRSCOgGkx/t7L4+CW1Zt6MROOHGNLTmAW9uf3EOV3vAV5oU16b9eQwXL06Ynxc4=', process.env.NEXT_PUBLIC_SECRET_KEY, process.env.NEXT_PUBLIC_FIXED_IV),
 		dangerouslyAllowBrowser: true,
 	});
 
@@ -104,7 +107,7 @@ const RecordingPage = () => {
 			mediaRecorder.stop();
 			stream.getTracks().forEach((track) => track.stop()); // Stop microphone stream
 		}
-		localStorage.setItem('history', `MY SPEECH: ` + localStorage.getItem('transcript') + '\n');
+		// localStorage.setItem('history', `MY SPEECH: ` + localStorage.getItem('transcript') + '\n');
 	};
 
 	// Format time in mm:ss
@@ -170,6 +173,9 @@ const RecordingPage = () => {
 		response = response.choices[0]?.message?.content;
 		history.push({ role: 'assistant', content: response });
 		console.log('Response: ', response);
+
+		setTranscript(transcript + 'USER: ' + userText + '\n' + 'JUDGE: ' + response + '\n');
+
 		getAndPlayAudio(response);
 		return response;
 	};
@@ -180,6 +186,7 @@ const RecordingPage = () => {
 				model: 'tts-1',
 				voice: 'alloy',
 				input: responseText,
+				speed: 1.15,
 			});
 			const buffer = Buffer.from(await mp3.arrayBuffer());
 			setCurrentSpeaker('Judge');
@@ -270,6 +277,7 @@ const RecordingPage = () => {
 				<button
 					className='absolute bottom-4 right-4 bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-6 rounded w-44'
 					onClick={() => {
+						localStorage.setItem('transcript', transcript);
 						window.location.href = '/score';
 					}}
 				>
