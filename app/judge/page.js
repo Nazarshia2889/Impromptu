@@ -4,7 +4,14 @@ import { useState, useEffect, useRef } from 'react';
 import { Inter } from 'next/font/google';
 import dotenv from 'dotenv';
 import { getJudgeFeedbackContextPrompt } from '@/utils/prompt';
-import { initializeAPIs, transcribeAudio, getGroqResponse, generateSpeech } from '@/utils/apiUtils';
+import { initializeAPIs } from '@/utils/apiUtils';
+import {
+	handleTranscribeAudio,
+	playAudioBrowser,
+	getAndPlayAudio,
+	getResponse,
+} from '@/utils/audioHandlers';
+import { startMicrophoneStream, stopRecording } from '@/utils/recordingHandlers';
 import RecordingControls from '@/components/recording/RecordingControls';
 import JudgesFeedback from '@/components/recording/JudgesFeedback';
 import RecordingSidebar from '@/components/recording/RecordingSidebar';
@@ -13,6 +20,7 @@ dotenv.config();
 const inter = Inter({ subsets: ['latin'] });
 
 const RecordingPage = () => {
+	// State
 	const [notes, setNotes] = useState('');
 	const [isRecording, setIsRecording] = useState(false);
 	const [hasStarted, setHasStarted] = useState(false);
@@ -22,6 +30,7 @@ const RecordingPage = () => {
 	const [currentSpeaker, setCurrentSpeaker] = useState('');
 	const [transcript, setTranscript] = useState('');
 
+	// Refs
 	const mediaRecorder = useRef(null);
 	const stream = useRef(null);
 	const history = [
@@ -31,10 +40,11 @@ const RecordingPage = () => {
 		},
 	];
 
-	// Initialize APIs outside of component to avoid recreation
+	// Initialize APIs
 	const APIs = initializeAPIs();
 	const { transcribeGroq, groq, openai } = APIs;
 
+	// Load initial data
 	useEffect(() => {
 		const storedNotes = localStorage.getItem('notes');
 		const storedSpeakingLength = localStorage.getItem('speakingLength');
@@ -47,89 +57,32 @@ const RecordingPage = () => {
 		if (storedTopic) setTopic(storedTopic);
 	}, []);
 
+	// Create bound versions of handlers that include necessary state/props
+	const boundGetAndPlayAudio = async (responseText) =>
+		await getAndPlayAudio(responseText, openai, setCurrentSpeaker);
+
+	const boundGetResponse = async (userText) =>
+		await getResponse(userText, groq, history, setTranscript, boundGetAndPlayAudio);
+
+	const boundHandleTranscribeAudio = async (file) =>
+		await handleTranscribeAudio(file, transcribeGroq, boundGetResponse);
+
+	// Event Handlers
 	const handleTimerEnd = () => {
 		if (isRecording) {
-			stopRecording();
+			handleStopRecording();
 		}
 	};
 
-	const startRecording = () => {
-		const storedSpeakingLength = parseInt(localStorage.getItem('speakingLength'), 10);
-		setSpeakingLength(storedSpeakingLength);
+	const handleStartRecording = () => {
 		setIsRecording(true);
 		setHasStarted(true);
-		startMicrophoneStream();
+		startMicrophoneStream(mediaRecorder, stream, boundHandleTranscribeAudio);
 		setCurrentSpeaker('User');
 	};
 
-	const stopRecording = async () => {
-		setIsRecording(false);
-		if (mediaRecorder.current && stream.current) {
-			mediaRecorder.current.stop();
-			stream.current.getTracks().forEach((track) => track.stop());
-		}
-	};
-
-	const startMicrophoneStream = () => {
-		navigator.mediaDevices.getUserMedia({ audio: true }).then((micStream) => {
-			stream.current = micStream;
-			mediaRecorder.current = new MediaRecorder(stream.current);
-			let chunks = [];
-			mediaRecorder.current.ondataavailable = (event) => {
-				chunks.push(event.data);
-			};
-			mediaRecorder.current.onstop = () => {
-				const audioBlob = new Blob(chunks, { type: 'audio/mp3' });
-				const file = new File([audioBlob], 'recording.mp3', { type: 'audio/mp3' });
-				handleTranscribeAudio(file);
-			};
-			mediaRecorder.current.start();
-		});
-	};
-
-	const handleTranscribeAudio = async (file) => {
-		try {
-			const transcriptionText = await transcribeAudio(file, transcribeGroq);
-			await getResponse(transcriptionText);
-			return transcriptionText;
-		} catch (error) {
-			console.error('Error in handleTranscribeAudio:', error);
-		}
-	};
-
-	const playAudioBrowser = async (buffer) => {
-		const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-		const audioBuffer = await audioContext.decodeAudioData(buffer.buffer);
-		const source = audioContext.createBufferSource();
-		source.buffer = audioBuffer;
-		source.connect(audioContext.destination);
-		source.start(0);
-	};
-
-	const getAndPlayAudio = async (responseText) => {
-		try {
-			const buffer = await generateSpeech(openai, responseText);
-			setCurrentSpeaker('Judge');
-			playAudioBrowser(buffer);
-		} catch (error) {
-			console.error('Error in getAndPlayAudio:', error);
-		}
-	};
-
-	const getResponse = async (userText) => {
-		try {
-			history.push({ role: 'user', content: userText });
-			const response = await getGroqResponse(groq, userText, history);
-			history.push({ role: 'assistant', content: response });
-
-			setTranscript((prev) => prev + 'USER: ' + userText + '\n' + 'JUDGE: ' + response + '\n');
-
-			getAndPlayAudio(response);
-			return response;
-		} catch (error) {
-			console.error('Error in getResponse:', error);
-		}
-	};
+	const handleStopRecording = () =>
+		stopRecording(isRecording, mediaRecorder, stream, setIsRecording);
 
 	return (
 		<div className={`min-h-screen bg-gray-100 p-8 ${inter.className} flex relative`}>
@@ -138,8 +91,8 @@ const RecordingPage = () => {
 				<RecordingControls
 					isRecording={isRecording}
 					speakingLength={speakingLength}
-					onStartRecording={startRecording}
-					onStopRecording={stopRecording}
+					onStartRecording={handleStartRecording}
+					onStopRecording={handleStopRecording}
 					onTimerEnd={handleTimerEnd}
 					hasStarted={hasStarted}
 				/>
