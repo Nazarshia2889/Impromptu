@@ -1,26 +1,33 @@
 import { useEffect, useState } from 'react';
 
-const Timer = ({ initialTime, onTimerEnd }) => {
+const Timer = ({ initialTime, onTimerEnd, isActive = true }) => {
 	const [timeLeft, setTimeLeft] = useState(initialTime);
 
+	// Single useEffect to handle both initialization and updates
 	useEffect(() => {
-		if (initialTime === null || initialTime <= 0) return;
+		// Initialize or reset timer when isActive changes to true
+		if (isActive) {
+			setTimeLeft(initialTime);
+		}
 
-		const timer = setInterval(() => {
-			setTimeLeft((prevTime) => {
-				if (prevTime <= 1) {
-					clearInterval(timer);
-					if (onTimerEnd) {
-						onTimerEnd();
+		// Only start interval if we're active and have valid time
+		if (isActive && initialTime > 0) {
+			const timer = setInterval(() => {
+				setTimeLeft((prevTime) => {
+					if (prevTime <= 1) {
+						clearInterval(timer);
+						if (onTimerEnd) {
+							onTimerEnd();
+						}
+						return 0;
 					}
-					return 0;
-				}
-				return prevTime - 1;
-			});
-		}, 1000);
+					return prevTime - 1;
+				});
+			}, 1000);
 
-		return () => clearInterval(timer);
-	}, [initialTime, onTimerEnd]);
+			return () => clearInterval(timer);
+		}
+	}, [initialTime, onTimerEnd, isActive]);
 
 	// Format time as mm:ss
 	const formatTime = (seconds) => {

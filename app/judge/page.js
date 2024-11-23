@@ -5,6 +5,7 @@ import { Inter } from 'next/font/google';
 import Groq from 'groq-sdk';
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
+import Timer from '@/components/ui/Timer';
 import { getJudgeFeedbackContextPrompt } from '@/utils/prompt';
 import { decrypt } from '@/utils/cryptography';
 
@@ -14,18 +15,16 @@ const inter = Inter({ subsets: ['latin'] });
 
 const RecordingPage = () => {
 	const [notes, setNotes] = useState('');
-	const [time, setTime] = useState(0);
 	const [isRecording, setIsRecording] = useState(false);
 	const [hasStarted, setHasStarted] = useState(false);
 	const [speakingLength, setSpeakingLength] = useState(0);
 	const [suggestions, setSuggestions] = useState([]);
-	const [timeLeft, setTimeLeft] = useState(0);
-	const [topic, setTopic] = useState(''); // New state for topic
-	const [currentSpeaker, setCurrentSpeaker] = useState(''); // Changed initial value to empty string
-	const [transcript, setTranscript] = useState(''); // New state for transcript
+	const [topic, setTopic] = useState('');
+	const [currentSpeaker, setCurrentSpeaker] = useState('');
+	const [transcript, setTranscript] = useState('');
 
-	let mediaRecorder = null;
-	let stream = null;
+	let mediaRecorder = useRef(null);
+	let stream = useRef(null);
 	let history = [
 		{
 			role: 'system',
@@ -50,84 +49,59 @@ const RecordingPage = () => {
 		const storedNotes = localStorage.getItem('notes');
 		const storedSpeakingLength = localStorage.getItem('speakingLength');
 		const storedSuggestions = localStorage.getItem('geminiSuggestions');
-		const storedTopic = localStorage.getItem('topic'); // Fetch topic from localStorage
+		const storedTopic = localStorage.getItem('topic');
 
 		if (storedNotes) {
 			setNotes(storedNotes);
 		}
 		if (storedSpeakingLength) {
 			setSpeakingLength(parseInt(storedSpeakingLength, 10));
-			setTimeLeft(parseInt(storedSpeakingLength, 10)); // Initialize timeLeft
 		}
 		if (storedSuggestions) {
 			setSuggestions(JSON.parse(storedSuggestions));
 		}
 		if (storedTopic) {
-			setTopic(storedTopic); // Set the topic state
+			setTopic(storedTopic);
 		}
 	}, []);
 
-	// Timer logic
-	useEffect(() => {
-		let timer;
-		if (isRecording && timeLeft > 0) {
-			timer = setInterval(() => {
-				setTimeLeft((prevTime) => prevTime - 1);
-			}, 1000);
-		} else if (timeLeft === 0 && isRecording) {
-			setIsRecording(false);
+	const handleTimerEnd = () => {
+		if (isRecording) {
 			stopRecording();
 		}
+	};
 
-		return () => clearInterval(timer);
-	}, [isRecording, timeLeft]);
-
-	// Start recording handler
 	const startRecording = () => {
+		const storedSpeakingLength = parseInt(localStorage.getItem('speakingLength'), 10);
+		setSpeakingLength(storedSpeakingLength);
 		setIsRecording(true);
 		setHasStarted(true);
-		setTimeLeft(speakingLength); // Reset timer to speaking length
-		startMicrophoneStream(speakingLength);
-		setCurrentSpeaker('User'); // Set current speaker to User when recording starts
+		startMicrophoneStream();
+		setCurrentSpeaker('User');
 	};
 
-	// Stop recording handler
 	const stopRecording = async () => {
 		setIsRecording(false);
-		if (mediaRecorder && stream) {
-			mediaRecorder.stop();
-			stream.getTracks().forEach((track) => track.stop()); // Stop microphone stream
+		if (mediaRecorder.current && stream.current) {
+			mediaRecorder.current.stop();
+			stream.current.getTracks().forEach((track) => track.stop());
 		}
-		// localStorage.setItem('history', `MY SPEECH: ` + localStorage.getItem('transcript') + '\n');
 	};
 
-	// Format time in mm:ss
-	const formatTime = (seconds) => {
-		const minutes = Math.floor(seconds / 60);
-		const remainingSeconds = seconds % 60;
-		return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-	};
-
-	const startMicrophoneStream = (duration) => {
-		// Get the microphone stream and store audio data in memory
+	const startMicrophoneStream = () => {
 		navigator.mediaDevices.getUserMedia({ audio: true }).then((micStream) => {
-			stream = micStream;
-			mediaRecorder = new MediaRecorder(stream);
+			stream.current = micStream;
+			mediaRecorder.current = new MediaRecorder(stream.current);
 			let chunks = [];
-			mediaRecorder.ondataavailable = (event) => {
+			mediaRecorder.current.ondataavailable = (event) => {
 				chunks.push(event.data);
 			};
-			mediaRecorder.onstop = () => {
+			mediaRecorder.current.onstop = () => {
 				const audioBlob = new Blob(chunks, { type: 'audio/mp3' });
-				console.log('Audio Blob: ', audioBlob);
 				const file = new File([audioBlob], 'recording.mp3', { type: 'audio/mp3' });
 				transcribeAudio(file);
 			};
-			mediaRecorder.start();
-
-			setTimeout(() => {
-				stopRecording();
-			}, duration * 1000); // Stop recording after the specified duration
+			mediaRecorder.current.start();
 		});
 	};
 
@@ -141,8 +115,6 @@ const RecordingPage = () => {
 				response_format: 'verbose_json',
 			});
 
-			console.log('Transcription: ', transcription.text);
-			// localStorage.setItem('transcript', transcription.text);
 			await getResponse(transcription.text);
 			return transcription.text;
 		} catch (error) {
@@ -163,7 +135,6 @@ const RecordingPage = () => {
 		});
 		response = response.choices[0]?.message?.content;
 		history.push({ role: 'assistant', content: response });
-		console.log('Response: ', response);
 
 		setTranscript(transcript + 'USER: ' + userText + '\n' + 'JUDGE: ' + response + '\n');
 
@@ -189,16 +160,10 @@ const RecordingPage = () => {
 
 	const playAudioBrowser = async (buffer) => {
 		const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-		// Convert buffer to AudioBuffer
 		const audioBuffer = await audioContext.decodeAudioData(buffer.buffer);
-
-		// Create audio source
 		const source = audioContext.createBufferSource();
 		source.buffer = audioBuffer;
 		source.connect(audioContext.destination);
-
-		// Play the audio
 		source.start(0);
 	};
 
@@ -224,9 +189,7 @@ const RecordingPage = () => {
 						</button>
 					)}
 
-					<div className='text-lg font-semibold text-white bg-red-400 px-4 py-2 rounded-full'>
-						Timer: {formatTime(timeLeft)} ⏱️
-					</div>
+					<Timer initialTime={speakingLength} onTimerEnd={handleTimerEnd} isActive={isRecording} />
 				</div>
 
 				{/* Recording Status */}
@@ -245,7 +208,7 @@ const RecordingPage = () => {
 				{/* Judges Feedback Section */}
 				<div className='w-full mb-6 mt-8'>
 					<h2 className='text-2xl font-bold mb-4'>Judges Feedback:</h2>
-					<div className='grid grid-cols-3 gap-4  mt-10 '>
+					<div className='grid grid-cols-3 gap-4 mt-10'>
 						{/* Judge 1 */}
 						<div
 							className={`bg-white shadow-md p-4 rounded-lg relative ${
@@ -264,6 +227,7 @@ const RecordingPage = () => {
 					</div>
 				</div>
 			</div>
+
 			<div className='relative'>
 				<button
 					className='absolute bottom-4 right-4 bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-6 rounded w-44'
@@ -278,7 +242,7 @@ const RecordingPage = () => {
 
 			{/* Right Section (Topic, Notes and Suggestions) */}
 			<div className='w-1/3 p-4 bg-gray-50 border border-gray-300 rounded-lg h-auto flex flex-col'>
-				{/* New Topic Section */}
+				{/* Topic Section */}
 				<h2 className='text-2xl font-bold mb-2'>Topic:</h2>
 				<div className='w-full p-3 mb-4 bg-white border border-gray-300 rounded-md'>
 					<p className='text-lg'>{topic}</p>
