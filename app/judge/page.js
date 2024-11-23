@@ -1,17 +1,21 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Inter } from 'next/font/google';
+
 import dotenv from 'dotenv';
-import { getJudgeFeedbackContextPrompt } from '@/utils/prompt';
-import { initializeAPIs } from '@/utils/apiUtils';
-import { handleTranscribeAudio, getAndPlayAudio, getResponse } from '@/utils/audioHandlers';
-import { startMicrophoneStream, stopRecording } from '@/utils/recordingHandlers';
-import RecordingControls from '@/components/recording/RecordingControls';
+
 import JudgesFeedback from '@/components/recording/JudgesFeedback';
+import RecordingControls from '@/components/recording/RecordingControls';
 import RecordingSidebar from '@/components/recording/RecordingSidebar';
 
+import { getAndPlayAudio, getResponse, handleTranscribeAudio } from '@/utils/audioHandlers';
+import { initializeAPIs } from '@/utils/apiUtils';
+import { getJudgeFeedbackContextPrompt } from '@/utils/prompt';
+import { startMicrophoneStream, stopRecording } from '@/utils/recordingHandlers';
+
 dotenv.config();
+
 const inter = Inter({ subsets: ['latin'] });
 
 const RecordingPage = () => {
