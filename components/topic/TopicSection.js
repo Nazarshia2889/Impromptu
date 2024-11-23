@@ -3,7 +3,7 @@ import Button from '../ui/Button';
 import SelectField from '../ui/SelectField';
 import questions from '@/data/questions';
 
-const TopicSection = ({ onNext }) => {
+const TopicSection = ({ onConfirm }) => {
 	const [specificity, setSpecificity] = useState('');
 	const [category, setCategory] = useState('');
 	const [topic, setTopic] = useState('');
@@ -63,15 +63,16 @@ const TopicSection = ({ onNext }) => {
 				</div>
 			)}
 			<Button
-				onClick={onNext}
+				onClick={onConfirm}
 				disabled={!topic}
 				styles={
 					topic
 						? 'bg-gray-800 text-white hover:bg-gray-900 focus:bg-gray-700 mt-4'
 						: 'bg-gray-400 text-gray-600 cursor-not-allowed mt-4'
+					// 'bg-green-500 text-white hover:bg-green-600 focus:bg-green-700'
 				}
 			>
-				Next
+				Confirm
 			</Button>
 		</div>
 	);
