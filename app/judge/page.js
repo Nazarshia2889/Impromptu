@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import Timer from '@/components/ui/Timer';
 import { getJudgeFeedbackContextPrompt } from '@/utils/prompt';
 import { decrypt } from '@/utils/cryptography';
+import { initializeAPIs, transcribeAudio, getGroqResponse, generateSpeech } from '@/utils/apiUtils';
 
 dotenv.config();
 
@@ -32,18 +33,7 @@ const RecordingPage = () => {
 		},
 	];
 
-	const Groq_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY;
-	const transcribeGroq = new Groq({ apiKey: Groq_API_KEY, dangerouslyAllowBrowser: true });
-	const groq = new Groq({ apiKey: Groq_API_KEY, dangerouslyAllowBrowser: true });
-
-	const openai = new OpenAI({
-		apiKey: decrypt(
-			'Gv3D1aeJ2wpA7qaCIal9qt55ayPMq6L9cEWqJxS/Pg2UCU73YqoRnVmodqq/ova/6zn1J7EhmuTyRu+dCkAPK54U0YAy1+7oyRDnOhpvVaNf+/1Fd/2IaBoESxXctti9j/J2HO3S/HpHaXuep1cRO9/Q5fsw/0/6qGfKIpfDKAKqtRSCOgGkx/t7L4+CW1Zt6MROOHGNLTmAW9uf3EOV3vAV5oU16b9eQwXL06Ynxc4=',
-			process.env.NEXT_PUBLIC_SECRET_KEY,
-			process.env.NEXT_PUBLIC_FIXED_IV
-		),
-		dangerouslyAllowBrowser: true,
-	});
+	const { transcribeGroq, groq, openai } = initializeAPIs();
 
 	useEffect(() => {
 		const storedNotes = localStorage.getItem('notes');
