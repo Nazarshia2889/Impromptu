@@ -1,6 +1,6 @@
 import { transcribeAudio, getGroqResponse, generateSpeech } from '@/utils/apiUtils';
 
-export const handleTranscribeAudio = async (file, transcribeGroq, getResponse) => {
+const handleTranscribeAudio = async (file, transcribeGroq, getResponse) => {
 	try {
 		const transcriptionText = await transcribeAudio(file, transcribeGroq);
 		await getResponse(transcriptionText);
@@ -10,16 +10,8 @@ export const handleTranscribeAudio = async (file, transcribeGroq, getResponse) =
 	}
 };
 
-export const playAudioBrowser = async (buffer) => {
-	const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-	const audioBuffer = await audioContext.decodeAudioData(buffer.buffer);
-	const source = audioContext.createBufferSource();
-	source.buffer = audioBuffer;
-	source.connect(audioContext.destination);
-	source.start(0);
-};
 
-export const getAndPlayAudio = async (responseText, openai, setCurrentSpeaker) => {
+const getAndPlayAudio = async (responseText, openai, setCurrentSpeaker) => {
 	try {
 		const buffer = await generateSpeech(openai, responseText);
 		setCurrentSpeaker('Judge');
@@ -29,7 +21,7 @@ export const getAndPlayAudio = async (responseText, openai, setCurrentSpeaker) =
 	}
 };
 
-export const getResponse = async (userText, groq, history, setTranscript, getAndPlayAudioFn) => {
+const getResponse = async (userText, groq, history, setTranscript, getAndPlayAudioFn) => {
 	try {
 		history.push({ role: 'user', content: userText });
 		const response = await getGroqResponse(groq, userText, history);
@@ -43,3 +35,5 @@ export const getResponse = async (userText, groq, history, setTranscript, getAnd
 		console.error('Error in getResponse:', error);
 	}
 };
+
+export { handleTranscribeAudio, getAndPlayAudio, getResponse };

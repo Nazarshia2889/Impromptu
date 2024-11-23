@@ -5,12 +5,7 @@ import { Inter } from 'next/font/google';
 import dotenv from 'dotenv';
 import { getJudgeFeedbackContextPrompt } from '@/utils/prompt';
 import { initializeAPIs } from '@/utils/apiUtils';
-import {
-	handleTranscribeAudio,
-	playAudioBrowser,
-	getAndPlayAudio,
-	getResponse,
-} from '@/utils/audioHandlers';
+import { handleTranscribeAudio, getAndPlayAudio, getResponse } from '@/utils/audioHandlers';
 import { startMicrophoneStream, stopRecording } from '@/utils/recordingHandlers';
 import RecordingControls from '@/components/recording/RecordingControls';
 import JudgesFeedback from '@/components/recording/JudgesFeedback';
@@ -58,14 +53,17 @@ const RecordingPage = () => {
 	}, []);
 
 	// Create bound versions of handlers that include necessary state/props
-	const boundGetAndPlayAudio = async (responseText) =>
+	const boundGetAndPlayAudio = async (responseText) => {
 		await getAndPlayAudio(responseText, openai, setCurrentSpeaker);
+	};
 
-	const boundGetResponse = async (userText) =>
+	const boundGetResponse = async (userText) => {
 		await getResponse(userText, groq, history, setTranscript, boundGetAndPlayAudio);
+	};
 
-	const boundHandleTranscribeAudio = async (file) =>
+	const boundHandleTranscribeAudio = async (file) => {
 		await handleTranscribeAudio(file, transcribeGroq, boundGetResponse);
+	};
 
 	// Event Handlers
 	const handleTimerEnd = () => {
