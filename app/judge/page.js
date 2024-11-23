@@ -5,7 +5,8 @@ import { Inter } from 'next/font/google';
 import Groq from 'groq-sdk';
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
-import CryptoJS from 'crypto-js';
+import { getJudgeFeedbackContextPrompt } from '@/utils/prompt';
+import { decrypt } from '@/utils/cryptography';
 
 dotenv.config();
 
@@ -28,30 +29,20 @@ const RecordingPage = () => {
 	let history = [
 		{
 			role: 'system',
-			content: `You are a speech judge. The user will start by giving an impromptu speech about this topic: ${topic}. Challenge or question their ideas. Please limit to a maximum of two sentences. Be direct and speak at the level of an intelligent high school student.`,
+			content: getJudgeFeedbackContextPrompt(topic),
 		},
 	];
-	// let transcript = "";
 
 	const Groq_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY;
 	const transcribeGroq = new Groq({ apiKey: Groq_API_KEY, dangerouslyAllowBrowser: true });
 	const groq = new Groq({ apiKey: Groq_API_KEY, dangerouslyAllowBrowser: true });
 
-	const decrypt = (encryptedText, secretKey, fixedIV) => {
-		const key = CryptoJS.enc.Utf8.parse(secretKey.padEnd(16, ' ')); // Pad to 16 bytes
-		const iv = CryptoJS.enc.Utf8.parse(fixedIV.padEnd(16, ' ')); // Pad to 16 bytes
-
-		const decrypted = CryptoJS.AES.decrypt(encryptedText, key, {
-			iv: iv,
-			mode: CryptoJS.mode.CBC,
-			padding: CryptoJS.pad.Pkcs7,
-		});
-		return decrypted.toString(CryptoJS.enc.Utf8); // Convert to UTF-8 string
-	};
-
 	const openai = new OpenAI({
-		apiKey:
-			decrypt('Gv3D1aeJ2wpA7qaCIal9qt55ayPMq6L9cEWqJxS/Pg2UCU73YqoRnVmodqq/ova/6zn1J7EhmuTyRu+dCkAPK54U0YAy1+7oyRDnOhpvVaNf+/1Fd/2IaBoESxXctti9j/J2HO3S/HpHaXuep1cRO9/Q5fsw/0/6qGfKIpfDKAKqtRSCOgGkx/t7L4+CW1Zt6MROOHGNLTmAW9uf3EOV3vAV5oU16b9eQwXL06Ynxc4=', process.env.NEXT_PUBLIC_SECRET_KEY, process.env.NEXT_PUBLIC_FIXED_IV),
+		apiKey: decrypt(
+			'Gv3D1aeJ2wpA7qaCIal9qt55ayPMq6L9cEWqJxS/Pg2UCU73YqoRnVmodqq/ova/6zn1J7EhmuTyRu+dCkAPK54U0YAy1+7oyRDnOhpvVaNf+/1Fd/2IaBoESxXctti9j/J2HO3S/HpHaXuep1cRO9/Q5fsw/0/6qGfKIpfDKAKqtRSCOgGkx/t7L4+CW1Zt6MROOHGNLTmAW9uf3EOV3vAV5oU16b9eQwXL06Ynxc4=',
+			process.env.NEXT_PUBLIC_SECRET_KEY,
+			process.env.NEXT_PUBLIC_FIXED_IV
+		),
 		dangerouslyAllowBrowser: true,
 	});
 

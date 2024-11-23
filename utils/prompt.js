@@ -86,4 +86,8 @@ const groqStructureToolsParameters = [
 	},
 ];
 
-export { getNotesSuggestionsPrompt, getScorePrompt, groqStructureToolsParameters };
+const getJudgeFeedbackContextPrompt = (topic) => {
+	return `You are a speech judge. The user will start by giving an impromptu speech about this topic: ${topic}. Challenge or question their ideas. Please limit to a maximum of two short sentences. Be direct and speak at the level of an intelligent high school student.`;
+};
+
+export { getNotesSuggestionsPrompt, getScorePrompt, groqStructureToolsParameters, getJudgeFeedbackContextPrompt };
