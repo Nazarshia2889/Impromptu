@@ -1,5 +1,14 @@
 import { transcribeAudio, getGroqResponse, generateSpeech } from '@/utils/apiUtils';
 
+const playAudioBrowser = async (buffer) => {
+	const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+	const audioBuffer = await audioContext.decodeAudioData(buffer.buffer);
+	const source = audioContext.createBufferSource();
+	source.buffer = audioBuffer;
+	source.connect(audioContext.destination);
+	source.start(0);
+};
+
 const handleTranscribeAudio = async (file, transcribeGroq, getResponse) => {
 	try {
 		const transcriptionText = await transcribeAudio(file, transcribeGroq);
@@ -9,7 +18,6 @@ const handleTranscribeAudio = async (file, transcribeGroq, getResponse) => {
 		console.error('Error in handleTranscribeAudio:', error);
 	}
 };
-
 
 const getAndPlayAudio = async (responseText, openai, setCurrentSpeaker) => {
 	try {
