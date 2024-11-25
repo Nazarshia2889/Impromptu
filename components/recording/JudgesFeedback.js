@@ -1,7 +1,7 @@
 const JudgesFeedback = ({ currentSpeaker }) => {
 	return (
 		<div className='w-full mb-6 mt-8'>
-			<h2 className='text-2xl font-bold mb-4'>Judges Feedback:</h2>
+			<h2 className='text-2xl font-bold mb-4'>Judging Room:</h2>
 			<div className='grid grid-cols-3 gap-4 mt-10'>
 				<div
 					className={`bg-white shadow-md p-4 rounded-lg relative ${
